@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Water Hardness Bar</title>
+    <style>
+      /* Your CSS styles here */
+      #water-hardness-bar {
+        position: relative;
+        width: 313px;
+        height: 6px;
+        margin-top: 40px;
+        border-radius: 124px;
+        background: var(
+          --Bar-1,
+          linear-gradient(90deg, #e1ddcc 0%, #b1aea1 100%)
+        );
+      }
+
+      #dot {
+        position: relative;
+        display: flex;
+        width: 16px;
+        height: 16px;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        border-radius: 20px;
+        background: var(--Card-Bg, #252a31);
+        position: absolute;
+        right: 39px;
+        top: -4px;
+      }
+      #value {
+        position: absolute;
+        bottom: 16px;
+      }
+      #dot-inner {
+        width: 8px;
+        height: 8px;
+        border-radius: 8px;
+        flex-shrink: 0;
+        background-color: var(--Background-2, #e1ddcc);
+      }
+      .labels {
+        display: flex;
+        justify-content: space-between;
+        width: 313px;
+      }
+      label {
+        padding-top: 8px;
+        flex: 1;
+        text-align: center;
+        color: var(--Gray-2, #a5a5a5);
+        text-align: center;
+        font-family: Inter;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+      }
+      line {
+        width: 1px;
+        height: 14px;
+        background: var(--Gray-2, #a5a5a5);
+        margin-bottom: 6px;
+      }
+      .range {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--Gray-2, #a5a5a5);
+        text-align: right;
+        font-family: Inter;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+      }
+
+      #soft-label {
+        left: 0;
+        width: 33.3%;
+        text-align: center;
+      }
+
+      #moderate-label {
+        left: 50%;
+        width: 33.3%;
+        text-align: center;
+      }
+
+      #hard-label {
+        right: 0;
+        width: 33.3%;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="water-hardness-bar">
+      <div id="dot">
+        <div id="dot-inner"></div>
+        <div id="value">150</div>
+      </div>
+    </div>
+    <div class="labels">
+      <label>Soft</label>
+      <div class="range">
+        <line></line>
+        <div>60</div>
+      </div>
+
+      <label>Moderate</label>
+      <div class="range">
+        <line></line>
+        <div>120</div>
+      </div>
+      <label>Hard</label>
+    </div>
+
+    <script>
+      const waterHardnessBar = document.getElementById("water-hardness-bar");
+      const dot = document.getElementById("dot");
+      const valueElement = document.getElementById("value");
+
+      const maxHardness = 180; // Maximum hardness level
+
+      function updateBar(waterHardness) {
+        if (waterHardness < 0 || waterHardness > maxHardness) {
+          console.error("Invalid water hardness value.");
+          return;
+        }
+
+        valueElement.textContent = waterHardness; // Update the value display
+
+        const barWidth = waterHardnessBar.offsetWidth;
+        const dotPosition = (waterHardness / maxHardness) * barWidth - 8;
+        dot.style.left = `${dotPosition}px`;
+      }
+
+      // Example usage: Set the initial water hardness
+      updateBar(0); // Replace 150 with your desired value
+    </script>
+  </body>
+</html>
