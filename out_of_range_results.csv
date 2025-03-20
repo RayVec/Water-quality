@@ -1,0 +1,6 @@
+Participant ID,Sample ID,Date,Water System,Sample Type,Parameter,Value,Standard Range,Status
+88,201,2-Jul,Austin Water,FF,pH,9.62,6.5 - 9.5,Out of Range
+88,202,2-Jul,Austin Water,AF,pH,9.86,6.5 - 9.5,Out of Range
+120,212,4-Oct,County Line SUD,FF,pH,5.93,6.5 - 9.5,Out of Range
+120,213,4-Oct,County Line SUD,AF,pH,6.22,6.5 - 9.5,Out of Range
+152,215,4-Oct,City of Kyle,FF,Chlorine,0.1,0.2 - 4,Out of Range

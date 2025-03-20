@@ -1,10 +1,40 @@
 import pandas as pd
 from decimal import Decimal
 import json
+import sys
 
+# Load the shared configuration
+with open('config.json', 'r') as config_file:
+    config = json.load(config_file)
+    parameter_ranges = config['parameterRanges']
+    parameter_types = config['parameterTypes']  # Load parameter types from config
+    parameters = config['parameters']['all']  # Load parameter list from config
 
-# Load the dataset
-file_path = 'Sample-Data.csv'
+# Convert parameter ranges to standards format based on parameter types
+standards = {}
+for param, values in parameter_ranges.items():
+    # Get parameter type from config
+    param_type = parameter_types.get(param, 1)  # Default to type 1 if not found
+    
+    if param_type == 1:
+        # Type 1: Use standard ranges (min, max)
+        if isinstance(values, list) and not isinstance(values[0], str):
+            standards[param] = (values[0], values[1])
+    elif param_type == 3:
+        # Type 3: Special case for Bacteria
+        standards[param] = "No"
+    elif param_type == 2:
+        # Type 2: No specific range, just check if value >= 1
+        standards[param] = None
+    elif param_type == 0:
+        # Type 0: Custom ranges with labels, no standard checking
+        standards[param] = None
+    else:
+        # Default case
+        standards[param] = None
+
+# Get file path from command line argument or use default
+file_path = sys.argv[1] if len(sys.argv) > 1 else 'B6_Data_Converted.csv'
 data = pd.read_csv(file_path)
 
 # Clean column names by removing newline characters and extra spaces
@@ -18,45 +48,42 @@ data.rename(columns={'E. coli': 'Bacteria'}, inplace=True)
 # Verify cleaned column names
 # print("Cleaned Columns:", data.columns.tolist())
 
-# Define standards for parameters
-standards = {
-    'Disinfectant': (0.2, 4),
-    'Monochloramine': (0.2, 4),
-    'Chlorine': (0.2, 4),
-    'Lead': (0, 15),
-    'Nitrate': (0, 10),
-    'Nitrite': (0, 1),
-    'Turbidity': (0, 1),
-    'pH': (6.5, 9.5),
-    'Bacteria': 'No'
-}
-
 # Function to check if value is within standard
 def check_standard(value, param_type):
     if pd.isna(value):
         return None
-    if param_type in standards:
-        if param_type == 'Bacteria':
-            print(value)
-            return 1 if value == 0 else 0
-        if standards[param_type] is not None:
+        
+    # Get parameter type from config
+    param_type_value = parameter_types.get(param_type, 1)
+    
+    # Type 1: Check against standard range
+    if param_type_value == 1:
+        if param_type in standards:
             low, high = standards[param_type]
             return 1 if low <= value <= high else 0
+    # Type 2: Check if value is larger than 1
+    elif param_type_value == 2:
+        return 1 if value >= 1 else 0
+    # Type 3: Special case for Bacteria
+    elif param_type_value == 3 :
+        return 1 if value == 0 else 0
+    # Other types: No standard checking applies
+    else:
+        return None
+        
     return None
 
 # Group by Participant ID and Date to combine records
 combined_records = []
 grouped = data.groupby(['Participant ID', 'Date'])
 
-total_parameters={}
-for param in ['Monochloramine', 'Chlorine', 'Ammonia', 'Nitrate', 
-                      'Nitrite', 'pH', 'Temperature', 'Turbidity', 
-                      'Lead', 'Bacteria']:
-            
-            total_parameters[f'{param}_Outdoor_Average'] =0
-            total_parameters[f'{param}_FF_Average'] =0
-            total_parameters[f'{param}_AF_Average'] =0
-record_number=0
+# Initialize total_parameters using config parameters
+total_parameters = {}
+for param in parameters:
+    total_parameters[f'{param}_Outdoor_Average'] = 0
+    total_parameters[f'{param}_FF_Average'] = 0
+    total_parameters[f'{param}_AF_Average'] = 0
+record_number = 0
 
 # Add this helper function near the top of the file
 def round_decimal(value):
@@ -64,6 +91,7 @@ def round_decimal(value):
         return round(float(value), 2)
     return value
 
+# Replace hardcoded parameter lists with config version
 for (participant_id, date), group in grouped:
     # print(group)
     # print("--------------------------")
@@ -74,9 +102,7 @@ for (participant_id, date), group in grouped:
      # Ensure all sample types exist for this participant on this date
     if not out_sample.empty and not ff_sample.empty and not af_sample.empty:
         record_number+=1
-        for param in ['Monochloramine', 'Chlorine', 'Ammonia', 'Nitrate', 
-                      'Nitrite', 'pH', 'Temperature', 'Turbidity', 
-                      'Lead', 'Bacteria']:
+        for param in parameters:  # Use parameters from config instead of hardcoded list
             
             # if param=='Nitrite':
             #     print(param)
@@ -90,16 +116,12 @@ for (participant_id, date), group in grouped:
             if not pd.isna(af_sample[param].values[0]):
                 total_parameters[f'{param}_AF_Average'] += round_decimal(Decimal(str(af_sample[param].values[0])))
 
-# print(record_number, total_parameters)
-
 for (participant_id, date), group in grouped:
     # print(group)
     # print("--------------------------")
     out_sample = group[group['Sample Type'] == 'Out']
     ff_sample = group[group['Sample Type'] == 'FF']
-    af_sample = group[group['Sample Type'] == 'AF']
-    print(out_sample)
-    
+    af_sample = group[group['Sample Type'] == 'AF']    
     # Ensure all sample types exist for this participant on this date
     if not out_sample.empty and not ff_sample.empty and not af_sample.empty:
         
@@ -107,15 +129,12 @@ for (participant_id, date), group in grouped:
             'Participant ID': participant_id,
             'Sample_date': pd.to_datetime(f"{date}-{out_sample['Year'].values[0]}").strftime('%m/%d/%Y'),
             'Water System': out_sample['Water System'].values[0],
-           
         }
         
-        for param in ['Monochloramine', 'Chlorine', 'Ammonia', 'Nitrate', 
-                      'Nitrite', 'pH', 'Temperature', 'Turbidity', 
-                      'Lead', 'Bacteria']:
+        for param in parameters:  # Changed from hardcoded list to config parameters
             
-            param_type = 1 if param in ['Monochloramine','Chlorine', 'Lead', 'Nitrate', 
-                                        'Nitrite', 'Turbidity', 'pH'] else 3 if param == 'Bacteria' else 2
+            # Get parameter type from config instead of hardcoding
+            param_type = parameter_types.get(param, 1)  # Default to type 1 if not found
             
             combined_record[f'{param}_type'] = param_type
             
@@ -134,21 +153,11 @@ for (participant_id, date), group in grouped:
             combined_record[f'{param}_AF_Standard'] = check_standard(af_sample[param].values[0], param)
             combined_record[f'{param}_AF_Average'] = round_decimal(total_parameters[f'{param}_AF_Average']/record_number)
 
-            if pd.isna(combined_record[f'{param}_Outdoor']) and pd.isna(combined_record[f'{param}_FF']) and pd.isna(combined_record[f'{param}_AF']):
-                combined_record[f'{param}_Overall'] = 0
-            else:
+            # Check if all standards for this parameter are either 1 or None
+            if all(combined_record[f'{param}_{loc}_Standard'] in (1, None) for loc in ['Outdoor', 'FF', 'AF']):
                 combined_record[f'{param}_Overall'] = 1
-            
-        
-        # Calculate overall result
-        overall_result = all(combined_record[f'{param}_{loc}_Standard'] in (1,None) 
-                             for param in ['Chlorine', 'Lead', 
-                                           'Nitrate', 'Nitrite', 
-                                           'Turbidity', 'pH', 
-                                           'Bacteria']
-                             for loc in ['Outdoor', 'FF', 'AF'])
-        
-        combined_record['Overall_Result'] = 1 if overall_result else 0
+            else:
+                combined_record[f'{param}_Overall'] = 0
 
         
         combined_record['Disinfectant_type'] = 1
@@ -156,25 +165,48 @@ for (participant_id, date), group in grouped:
             combined_record['Disinfectant_Outdoor'] = combined_record['Monochloramine_Outdoor']
             combined_record['Disinfectant_Outdoor_Standard'] = combined_record['Monochloramine_Outdoor_Standard']
             combined_record['Disinfectant_Outdoor_Average'] = combined_record['Monochloramine_Outdoor_Average']
+            combined_record['Disinfectant_FF'] = combined_record['Monochloramine_FF']
+            combined_record['Disinfectant_FF_Standard'] = combined_record['Monochloramine_FF_Standard']
+            combined_record['Disinfectant_FF_Average'] = combined_record['Monochloramine_FF_Average']
+            combined_record['Disinfectant_AF'] = combined_record['Monochloramine_AF']
+            combined_record['Disinfectant_AF_Standard'] = combined_record['Monochloramine_AF_Standard']
+            combined_record['Disinfectant_Overall'] = combined_record['Monochloramine_Overall']
         else:
             combined_record['Disinfectant_Outdoor'] = combined_record['Chlorine_Outdoor']
             combined_record['Disinfectant_Outdoor_Standard'] = combined_record['Chlorine_Outdoor_Standard']
             combined_record['Disinfectant_Outdoor_Average'] = combined_record['Chlorine_Outdoor_Average']
-        if ff_sample['Disinfectant (1 = Mono, 2 = Chlorine)'].values[0]==1:
-            combined_record['Disinfectant_FF'] = combined_record['Monochloramine_FF']
-            combined_record['Disinfectant_FF_Standard'] = combined_record['Monochloramine_FF_Standard']
-            combined_record['Disinfectant_FF_Average'] = combined_record['Monochloramine_FF_Average']
-        else:
             combined_record['Disinfectant_FF'] = combined_record['Chlorine_FF']
             combined_record['Disinfectant_FF_Standard'] = combined_record['Chlorine_FF_Standard']
             combined_record['Disinfectant_FF_Average'] = combined_record['Chlorine_FF_Average']
-        if af_sample['Disinfectant (1 = Mono, 2 = Chlorine)'].values[0]==1:
-            combined_record['Disinfectant_AF'] = combined_record['Monochloramine_AF']
-            combined_record['Disinfectant_AF_Standard'] = combined_record['Monochloramine_AF_Standard']
-        else:
             combined_record['Disinfectant_AF'] = combined_record['Chlorine_AF']
             combined_record['Disinfectant_AF_Standard'] = combined_record['Chlorine_AF_Standard']
+            combined_record["Disinfectant_Overall"] = combined_record["Chlorine_Overall"]
+        # if ff_sample['Disinfectant (1 = Mono, 2 = Chlorine)'].values[0]==1:
+        #     combined_record['Disinfectant_FF'] = combined_record['Monochloramine_FF']
+        #     combined_record['Disinfectant_FF_Standard'] = combined_record['Monochloramine_FF_Standard']
+        #     combined_record['Disinfectant_FF_Average'] = combined_record['Monochloramine_FF_Average']
+        # else:
+        #     combined_record['Disinfectant_FF'] = combined_record['Chlorine_FF']
+        #     combined_record['Disinfectant_FF_Standard'] = combined_record['Chlorine_FF_Standard']
+        #     combined_record['Disinfectant_FF_Average'] = combined_record['Chlorine_FF_Average']
+        # if af_sample['Disinfectant (1 = Mono, 2 = Chlorine)'].values[0]==1:
+        #     combined_record['Disinfectant_AF'] = combined_record['Monochloramine_AF']
+        #     combined_record['Disinfectant_AF_Standard'] = combined_record['Monochloramine_AF_Standard']
+        # else:
+        #     combined_record['Disinfectant_AF'] = combined_record['Chlorine_AF']
+        #     combined_record['Disinfectant_AF_Standard'] = combined_record['Chlorine_AF_Standard']
         
+        # Calculate overall result
+        # Only consider parameters with types 1 and 3 for overall result calculation, 
+        # exclude Monochloramine and Chlorine, but include Disinfectant
+        overall_result = all(
+            combined_record[f'{param}_{loc}_Standard'] in (1, None)
+            for param in ([p for p in parameters if p not in ['Monochloramine', 'Chlorine']] + ['Disinfectant'])
+            for loc in ['Outdoor', 'FF', 'AF']
+            if parameter_types.get(param, 1) in [1, 3]  # Only include type 1 and 3 parameters
+        )
+        
+        combined_record['Overall_Result'] = 1 if overall_result else 0
         combined_records.append(combined_record)
 
 # Convert to DataFrame for easier manipulation or export

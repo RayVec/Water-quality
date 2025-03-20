@@ -1,0 +1,35 @@
+Sample ID,Participant ID,Date,Water System,"Disinfectant (1 = Mono, 2 = Chlorine)",Sample Type,Filter_softener_none,pH,Turbidity,Monochloramine,Chlorine,Nitrate,Nitrite,Ammonia,Lead,E. coli,Year,Time,"Source (1 = SW, GW
+ = GW, Mix = Mix
+)",Temperature
+201,88,2-Jul,Austin Water,1,FF,,9.62,0.12,1.33,0.0,1.1,0.164,0.14,2.4,No,2024,N/A,N/A,N/A
+202,88,2-Jul,Austin Water,1,AF,,9.86,0.16,1.55,0.09,1.2,0.108,0.13,,No,2024,N/A,N/A,N/A
+203,88,2-Jul,Austin Water,1,Out,,9.45,0.14,1.6,0.08,1.2,0.136,0.11,,No,2024,N/A,N/A,N/A
+204,7,7-Sep,Austin Water,1,FF,,7.23,0.07,1.87,0.2,1.0,,0.08,3.6,No,2024,N/A,N/A,N/A
+205,7,7-Sep,Austin Water,1,AF,,7.69,0.09,1.99,0.2,0.9,,0.08,,No,2024,N/A,N/A,N/A
+206,7,7-Sep,Austin Water,1,Out,,8.39,0.06,1.87,0.2,1.1,,0.09,,No,2024,N/A,N/A,N/A
+207,127,11-Sep,City of Killeen,1,FF,Filter,6.98,0.22,0.77,0.1,0.3,,0.21,0.8,No,2024,N/A,N/A,N/A
+208,127,11-Sep,City of Killeen,1,FF,,6.9,0.13,0.9,0.1,0.2,,0.23,,No,2024,N/A,N/A,N/A
+209,127,11-Sep,City of Killeen,1,AF,Filter,7.08,0.1,0.91,0.2,0.0,,0.27,1.6,No,2024,N/A,N/A,N/A
+210,127,11-Sep,City of Killeen,1,AF,,7.34,0.09,0.87,0.1,0.4,,0.22,,No,2024,N/A,N/A,N/A
+211,127,11-Sep,City of Killeen,1,Out,,7.6,0.15,0.9,0.1,0.5,,0.23,,No,2024,N/A,N/A,N/A
+212,120,4-Oct,County Line SUD,2,FF,,5.93,0.07,0.08,2.2,0.8,,0.0,2.1,No,2024,N/A,N/A,N/A
+213,120,4-Oct,County Line SUD,2,AF,,6.22,0.06,0.07,2.4,1.0,,0.01,,No,2024,N/A,N/A,N/A
+214,120,4-Oct,County Line SUD,2,Out,,6.62,0.07,0.09,2.4,1.3,,0.01,,No,2024,N/A,N/A,N/A
+215,152,4-Oct,City of Kyle,2,FF,Softener,7.75,0.08,0.06,0.1,0.3,,0.0,2.0,No,2024,N/A,N/A,N/A
+216,152,4-Oct,City of Kyle,2,AF,Softener,8.0,0.03,0.06,0.7,0.4,,0.0,,No,2024,N/A,N/A,N/A
+217,152,4-Oct,City of Kyle,2,Out,,6.83,0.06,0.06,2.5,1.1,,0.02,,No,2024,N/A,N/A,N/A
+218,92,4-Oct,Creedmoor Maha WSC,1,FF,,8.33,0.31,1.46,0.2,1.1,,0.06,3.6,No,2024,N/A,N/A,N/A
+219,92,4-Oct,Creedmoor Maha WSC,1,AF,,8.56,0.4,1.31,0.1,1.0,,0.08,,No,2024,N/A,N/A,N/A
+220,92,4-Oct,Creedmoor Maha WSC,1,Out,,8.99,0.7,1.48,0.1,0.6,,0.05,,No,2024,N/A,N/A,N/A
+221,131,7-Oct,County Line SUD,2,FF,,6.57,0.07,0.11,0.8,1.4,,0.0,3.2,No,2024,N/A,N/A,N/A
+222,131,7-Oct,County Line SUD,2,AF,,6.95,0.04,0.08,2.3,1.4,,0.0,,No,2024,N/A,N/A,N/A
+223,131,7-Oct,County Line SUD,2,Out,,7.31,0.13,0.06,2.2,0.8,,0.0,,No,2024,N/A,N/A,N/A
+224,89,1-Nov,Austin Water,1,FF,,7.79,0.09,1.37,0.2,0.6,,0.03,4.4,No,2024,N/A,N/A,N/A
+225,89,1-Nov,Austin Water,1,AF,,8.05,0.06,1.45,0.1,0.5,,0.01,,No,2024,N/A,N/A,N/A
+226,89,1-Nov,Austin Water,1,Out,,8.39,0.1,1.38,0.2,0.6,,0.02,,No,2024,N/A,N/A,N/A
+227,147,4-Dec,Austin Water,1,FF,,9.08,0.01,1.04,0.1,0.7,0.086,0.01,0.9,No,2024,N/A,N/A,N/A
+228,147,4-Dec,Austin Water,1,AF,,8.82,0.03,1.06,0.1,0.3,0.12,0.03,,No,2024,N/A,N/A,N/A
+229,147,4-Dec,Austin Water,1,Out,,8.47,0.05,1.17,0.1,0.1,0.089,0.02,,No,2024,N/A,N/A,N/A
+230,105,6-Dec,Austin Water,1,FF,,8.33,0.08,1.63,0.04,0.9,0.065,0.06,1.9,No,2024,N/A,N/A,N/A
+231,105,6-Dec,Austin Water,1,AF,,9.2,0.08,1.68,0.03,0.9,0.087,0.01,,No,2024,N/A,N/A,N/A
+232,105,6-Dec,Austin Water,1,Out,,9.37,0.2,1.77,0.04,0.9,0.064,0.06,,No,2024,N/A,N/A,N/A

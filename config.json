@@ -1,0 +1,100 @@
+{
+  "parameterRanges": {
+    "Disinfectant": [0.2, 4, 6],
+    "Monochloramine": [0.2, 4, 6],
+    "Chlorine": [0.2, 4, 6],
+    "Lead": [0, 15, 30],
+    "Nitrate": [0, 10, 15],
+    "Nitrite": [0, 1, 1.5],
+    "Turbidity": [0, 1, 1.5],
+    "pH": ["Low", 6.5, "Medium", 9.5, "High", 12],
+    "Bacteria": [0, 0, 1],
+    "Ammonia": "No",
+    "Hardness": ["Soft", 60, "Moderate", 120, "Hard", 180]
+  },
+  "parameterTypes": {
+    "Disinfectant": 1,
+    "Monochloramine": 1,
+    "Chlorine": 1,
+    "Lead": 1,
+    "Nitrate": 1,
+    "Nitrite": 1,
+    "Turbidity": 1,
+    "pH": 0,
+    "Bacteria": 3,
+    "Ammonia": 2,
+    "Hardness": 0,
+    "Temperature": 2
+  },
+  "parameters": {
+    "all": [
+      "Monochloramine",
+      "Chlorine",
+      "Ammonia",
+      "Nitrate",
+      "Nitrite",
+      "pH",
+      "Turbidity",
+      "Lead",
+      "Bacteria"
+    ]
+  },
+  "waterUtilities": {
+    "Austin Water": {
+      "name": "Austin Water",
+      "website": "https://www.austintexas.gov/department/water",
+      "phone": "311",
+      "location": "625 E. 10th St. Austin, TX 78701",
+      "annual_report": "https://www.austintexas.gov/sites/default/files/files/Water/WaterQualityReports/AW_WQR_Report_2023.pdf",
+      "image": "../../icons/austin-water.png"
+    },
+    "Goforth": {
+      "name": "Goforth",
+      "website": "https://www.goforthwater.org/home.php?p=gf_home",
+      "phone": "(512) 376-5695",
+      "location": "Goforth SUD 8900 Niederwald Strasse Kyle, Texas 78640.",
+      "annual_report": "https://www.goforthwater.org/pdf/Docs-AnnualWaterReport-2023.pdf",
+      "image": "../../icons/goforth.png"
+    },
+    "City of Manor": {
+      "name": "City of Manor",
+      "website": "https://www.cityofmanor.org/",
+      "phone": "(512) 272-5555",
+      "location": "Manor City Hall 105 E. Eggleston St.",
+      "annual_report": "https://www.cityofmanor.org/upload/page/0113/docs/2023%20Consumer%20Confidence%20Report%20for%20Public%20Water%20System%20CITY%20OF%20MANOR_v2.pdf",
+      "image": "../../icons/city-of-manor.png"
+    },
+    "City of Killeen": {
+      "name": "City of Killeen",
+      "website": "https://www.killeentexas.gov/",
+      "phone": "254-501-6500",
+      "location": "805 W Jasper Dr Killeen, TX 76541",
+      "annual_report": "https://www.killeentexas.gov/DocumentCenter/View/10471/2023-City-of-Killeen-Drinking-Water-Quality-Report",
+      "image": "../../icons/city-of-killeen.png"
+    },
+    "County Line SUD": {
+      "name": "County Line SUD",
+      "website": "https://clsud.com/",
+      "phone": "512-398-4748",
+      "location": "8870 Camino Real Uhland, Texas 78640",
+      "annual_report": "https://clsud.com/wp-content/uploads/2024/06/2023_CLSUD-Consumer-Confidence-Report-Rev.-6-20-24.pdf",
+      "image": "../../icons/county-line-sud.png"
+    },
+    "City of Kyle": {
+      "name": "City of Kyle",
+      "website": "https://www.cityofkyle.com/",
+      "phone": "512-262-3024",
+      "location": "100 W. Center Street | Kyle, TX 78640",
+      "annual_report": "https://www.cityofkyle.com/media/58506",
+      "image": "../../icons/city-of-kyle.png"
+    },
+    "Creedmoor Maha WSC": {
+      "name": "Creedmoor Maha WSC",
+      "website": "https://creedmoormahawsc.com/",
+      "phone": "(512) 243-2113",
+      "location": "Creedmoor Maha Water Supply Corp 13709 Schriber Road Buda, TX 78610",
+      "annual_report": "https://creedmoormahawsc.com/documents/141/2023_CCR-ADA_Compliant.pdf",
+      "image": "../../icons/creedmoor-maha-wsc.png"
+    }
+  }
+}

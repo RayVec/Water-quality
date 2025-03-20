@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Example</title>
+  </head>
+  <style>
+    .root {
+      display: flex;
+      width: 377px;
+      flex-direction: column;
+      align-items: flex-start;
+      background: #fff;
+    }
+    .header {
+      display: flex;
+      padding: 16px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      align-self: stretch;
+      background: var(--Neutral, #252a31);
+      box-shadow: 0px 0px 8px 0px rgba(21, 21, 21, 0.02);
+    }
+    .content {
+      display: flex;
+      padding: 20px 0px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 32px;
+      align-self: stretch;
+      box-shadow: 0px 0px 8px 0px rgba(21, 21, 21, 0.02);
+    }
+    .footer {
+      display: flex;
+      padding: 16px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      align-self: stretch;
+      background: var(--Card-Bg, #252a31);
+      box-shadow: 0px 0px 8px 0px rgba(21, 21, 21, 0.02);
+    }
+  </style>
+  <body>
+    <div class="root">
+      <div class="header"></div>
+      <div class="content"></div>
+      <div class="footer"></div>
+    </div>
+  </body>
+</html>

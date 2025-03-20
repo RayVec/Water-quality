@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        padding: 0 14px;
+      }
+      #bar {
+        position: relative;
+        width: 313px;
+        height: 6px;
+        margin-top: 30px;
+        border-radius: 124px;
+        background: #f7b32b;
+      }
+
+      #dot {
+        position: relative;
+        display: flex;
+        width: 16px;
+        height: 16px;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        border-radius: 20px;
+        background: #252a31;
+        position: absolute;
+        top: -6px;
+        z-index: 9;
+      }
+
+      #value {
+        position: absolute;
+        top: -22px;
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        color: black;
+        text-align: center;
+      }
+
+      #dot-inner {
+        width: 8px;
+        height: 8px;
+        border-radius: 8px;
+        background-color: #e1ddcc;
+      }
+
+      .labels {
+        display: flex;
+        justify-content: space-between;
+        width: 313px;
+        margin-top: 10px;
+      }
+
+      label {
+        padding-top: 8px;
+        flex: 1;
+        text-align: center;
+        color: #a5a5a5;
+        font-family: Inter;
+        font-size: 14px;
+      }
+
+      line {
+        width: 1px;
+        height: 14px;
+        background: #a5a5a5;
+        margin-bottom: 6px;
+      }
+
+      .range {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #a5a5a5;
+        font-family: Inter;
+        font-size: 14px;
+      }
+
+      #normal-range {
+        position: absolute;
+        width: 200px;
+        height: 6px;
+        border-radius: 124px;
+        background: #abbf63;
+        left: 0px;
+      }
+
+      .range-labels {
+        position: relative;
+        display: flex;
+        width: 313px;
+      }
+
+      .range-node {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #a5a5a5;
+        font-family: Inter;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar">
+      <div id="normal-range"></div>
+      <div id="dot">
+        <div id="dot-inner"></div>
+        <div id="value">7.5</div>
+      </div>
+    </div>
+
+    <div class="labels">
+      <label>Low</label>
+      <div class="range">
+        <line></line>
+        <div>6.5</div>
+      </div>
+      <label>Medium</label>
+      <div class="range">
+        <line></line>
+        <div>9.5</div>
+      </div>
+      <label>High</label>
+    </div>
+
+    <script>
+      function updateBar(type, value, maxValue, minRange, maxRange) {
+        const bar = document.getElementById("bar");
+        const dot = document.getElementById("dot");
+        const normalRange = document.getElementById("normal-range");
+
+        const barWidth = bar.offsetWidth;
+        let minRangeDistance = (minRange * 313) / maxValue;
+        let maxRangeDistance = (maxRange * 313) / maxValue - minRangeDistance;
+
+        normalRange.style.left = minRangeDistance + "px";
+        normalRange.style.width = maxRangeDistance + "px";
+
+        dot.style.left = (value * 313) / maxValue - 8 + "px";
+        document.getElementById("value").textContent = value;
+      }
+
+      // Initialize with pH example values
+      // type: 0 (custom labels), value: 7.5 (example pH), maxValue: 12 (pH scale max)
+      // minRange: 6.5 (safe pH min), maxRange: 9.5 (safe pH max)
+      updateBar(0, 7.5, 12, 6.5, 9.5);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,230 @@
+
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          /* CSS copied from your design */
+          html,
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          body {
+            padding: 0 14px;
+          }
+          #bar {
+            position: relative;
+            width: 313px;
+            height: 6px;
+            margin-top: 30px;
+            border-radius: 124px;
+            background: #F7B32B;
+          }
+
+          #dot {
+            position: relative;
+            display: flex;
+            width: 16px;
+            height: 16px;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            border-radius: 20px;
+            background: #252a31;
+            position: absolute;
+            top: -6px;
+            z-index: 9;
+          }
+
+          #value {
+            position: absolute;
+            top: -22px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            color: black;
+            text-align: center;
+          }
+
+          #dot-inner {
+            width: 8px;
+            height: 8px;
+            border-radius: 8px;
+            background-color: #e1ddcc;
+          }
+
+          .labels {
+            display: flex;
+            width: 313px;
+          }
+
+          .range-labels {
+            position: relative;
+            display: flex;
+            width: 313px;
+          }
+
+          label {
+            padding-top: 8px;
+            text-align: center;
+            color: #a5a5a5;
+            font-family: Inter;
+            font-size: 14px;
+          }
+          .range-label{
+            position:absolute;
+            padding-top: 6px;
+            text-align: center;
+            color: #a5a5a5;
+            font-family: Inter;
+            font-size: 12px;
+            width: 90px;
+            text-align: center;
+          }
+
+          line {
+            width: 1px;
+            height: 14px;
+            background: #a5a5a5;
+            margin-bottom: 6px;
+          }
+
+          .range {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #a5a5a5;
+            font-family: Inter;
+            font-size: 14px;
+          }
+          .range-node {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #a5a5a5;
+            font-family: Inter;
+            font-size: 14px;
+          }
+          #normal-range {
+            position: absolute;
+            width: 200px;
+            height: 6px;
+            border-radius: 124px;
+            background: #ABBF63;
+            left: 0px;
+
+          }
+          #minRange {
+            position: absolute;
+            top: 18px;
+            text-align: center;
+          }
+          #maxRange {
+            position: absolute;
+            top: 18px;
+            text-align: center;
+          }
+          
+        </style>
+      </head>
+      <body>
+        <div id="bar">
+          <div id="normal-range">
+
+          </div>
+          <div id="dot">
+            <div id="dot-inner"></div>
+            <div id="value">7.76</div>
+          </div>
+        </div>
+        <div class="labels"><label style="width:169.54166666666666px">Low</label>
+            <div class="range">
+              <line></line>
+              <div>6.5</div>
+            </div>
+          <label style="width:78.25px">Medium</label>
+            <div class="range">
+              <line></line>
+              <div>9.5</div>
+            </div>
+          <label style="width:65.20833333333334px">High</label></div>
+        <div class="range-labels">
+          <div class="range-node">
+            <line></line>
+            <div id="minRange">0.2</div>
+          </div>
+          <div class="range-label">Acceptable Range</div>
+
+          <div class="range-node">
+            <line></line>
+            <div id="maxRange">4</div>
+          </div>
+        </div>
+        </div>
+
+        <script>
+          // JavaScript to update the position of the dot
+          const bar = document.getElementById("bar");
+          const dot = document.getElementById("dot");
+          const minRangeNode=document.getElementsByClassName("range-node")[0];
+          const maxRangeNode=document.getElementsByClassName("range-node")[1];
+          const rangeLabel=document.getElementsByClassName("range-label")[0];
+          const normalRange=document.getElementById("normal-range");
+
+          function updateBar(type, value, maxValue, minRange, maxRange, customConfig) {
+            // type: 0 without unregulated range, 1 with regulated range, 2 without range
+            if (value < 0 || value > maxValue) {
+              console.error("Invalid value.");
+              return;
+            }
+            
+            if (type==0){
+              document.getElementsByClassName("range-labels")[0].style.display="none";
+              bar.style.background="linear-gradient(90deg, #e1ddcc 0%, #b1aea1 100%)";
+              normalRange.style.display="none";
+              
+              // For type 0, position the labels correctly if using custom config
+              if (customConfig) {
+                const maxVal = customConfig[customConfig.length - 1];
+                const labelsContainer = document.querySelector('.labels');
+                
+                // Make sure labels are positioned correctly
+                if (labelsContainer && labelsContainer.children.length > 0) {
+                  for (let i = 0; i < labelsContainer.children.length; i++) {
+                    const labelDiv = labelsContainer.children[i];
+                    // Position adjustments can be made here if needed
+                  }
+                }
+              }
+            }
+            if (type==1){
+              document.getElementsByClassName("labels")[0].style.display="none";
+            }
+            if (type==2){
+              document.getElementsByClassName("range-labels")[0].style.display="none";
+              bar.style.background="linear-gradient(90deg, #e1ddcc 0%, #b1aea1 100%)";
+              normalRange.style.display="none";
+              document.getElementsByClassName("labels")[0].style.display="none";
+            }
+
+            const barWidth = bar.offsetWidth;
+            let minRangeDistance=minRange*313/maxValue
+            let maxRangeDistance=(maxRange*313/maxValue)-minRangeDistance
+
+            minRangeNode.style.left =minRangeDistance+"px"
+            maxRangeNode.style.left =maxRangeDistance+minRangeDistance-2+"px"
+            rangeLabel.style.left =(maxRangeDistance/2+minRangeDistance-45)+"px"
+            normalRange.style.left=minRangeDistance+"px";
+            normalRange.style.width=maxRangeDistance+"px";
+
+            // Position the dot based on the value
+            const dotPosition = (value / maxValue) * barWidth;
+            dot.style.left = (dotPosition - 8) + "px";
+          }
+
+          // Set the value dynamically
+          updateBar(0, 7.76, 12, 0, 12, ["Low",6.5,"Medium",9.5,"High",12]);
+        </script>
+      </body>
+    </html>
+    

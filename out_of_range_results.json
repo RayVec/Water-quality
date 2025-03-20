@@ -1,0 +1,88 @@
+{
+  "88": [
+    {
+      "sample_id": 201,
+      "date": "2-Jul",
+      "water_system": "Austin Water",
+      "sample_type": "FF",
+      "out_of_range_parameters": [
+        {
+          "parameter": "pH",
+          "value": 9.62,
+          "standard": [
+            6.5,
+            9.5
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": 202,
+      "date": "2-Jul",
+      "water_system": "Austin Water",
+      "sample_type": "AF",
+      "out_of_range_parameters": [
+        {
+          "parameter": "pH",
+          "value": 9.86,
+          "standard": [
+            6.5,
+            9.5
+          ]
+        }
+      ]
+    }
+  ],
+  "120": [
+    {
+      "sample_id": 212,
+      "date": "4-Oct",
+      "water_system": "County Line SUD",
+      "sample_type": "FF",
+      "out_of_range_parameters": [
+        {
+          "parameter": "pH",
+          "value": 5.93,
+          "standard": [
+            6.5,
+            9.5
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": 213,
+      "date": "4-Oct",
+      "water_system": "County Line SUD",
+      "sample_type": "AF",
+      "out_of_range_parameters": [
+        {
+          "parameter": "pH",
+          "value": 6.22,
+          "standard": [
+            6.5,
+            9.5
+          ]
+        }
+      ]
+    }
+  ],
+  "152": [
+    {
+      "sample_id": 215,
+      "date": "4-Oct",
+      "water_system": "City of Kyle",
+      "sample_type": "FF",
+      "out_of_range_parameters": [
+        {
+          "parameter": "Chlorine",
+          "value": 0.1,
+          "standard": [
+            0.2,
+            4
+          ]
+        }
+      ]
+    }
+  ]
+}

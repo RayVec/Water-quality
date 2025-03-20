@@ -43,10 +43,9 @@
         <h1>Table Of Contents</h1>
         <div style="padding: 0 16px; margin-bottom: 28px">
           <div class="reminder">
-            <h3><img src="../../icons/click.svg" />Clickable report</h3>
+            <h3><img src="../../icons/click.svg"  />Clickable report</h3>
             <p style="width: 345px">
-              All links and catalogs can be clicked to open websites or jump to
-              corresponding pages.
+              You can click on any links and catalogs in this report. They will take you to websites or other pages in the report.
             </p>
           </div>
         </div>
@@ -62,14 +61,13 @@
           "
         >
           <div style="width: 50%">
-            <a href="https://www.youtube.com/watch?v=XfNOU70LFV4"
+            <a href="https://www.youtube.com/shorts/CsoLzUBysHc"
               ><img src="../../images/video-guide.png"
             /></a>
           </div>
 
           <div style="padding: 12px; width: 50%; height: 100%">
-            Before starting your journey, take a look at our friendly guide to
-            help you navigate through the report!
+            Click here to watch our video guide. It will help you understand and use this report better.
           </div>
         </div>
         <div style="padding: 0 16px; margin-bottom: 28px" class="headings">
@@ -105,16 +103,16 @@
           </div>
           <div class="heading2">
             <div class="title">
-              <a href="#section2-2">WCWH results of 9 measures</a>
+              <a href="#section2-2">WCWH results of 8 measures</a>
             </div>
             <div class="page">3</div>
           </div>
-          <div class="heading2">
+          <!-- <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-1">Hardness</a>
             </div>
             <div class="page">3</div>
-          </div>
+          </div> -->
           <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-2">Disinfectant</a>
@@ -336,10 +334,10 @@
 
               <div>
                 <div style="margin-bottom: 8px">
-                  WCWH test is based on 9 parameters:
+                  WCWH test is based on 8 parameters:
                 </div>
                 <div style="padding-left: 12px">
-                  <li class="parameter-acceptable">
+                  <li class="{% if Disinfectant_Overall == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}">
                     Disinfectant: Free chlorine OR Chloramine
                   </li>
                   <div class="list-half">
@@ -370,11 +368,11 @@
                       Turbidity
                     </li>
                     <li
-                      class="{% if pH_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}"
+                      class="parameter-no-standard"
                     >
                       pH
                     </li>
-                    <li class="parameter-no-standard">Hardness</li>
+                    <!-- <li class="parameter-no-standard">Hardness</li> -->
                   </div>
                 </div>
                 <div class="dotted-line"></div>
@@ -541,7 +539,7 @@
               >
             </div>
 
-            <div id="section2-2-1" class="box-regular">
+            <!-- <div id="section2-2-1" class="box-regular">
               <h3>
                 <img src="../../icons/hardness.png" />
                 Hardness
@@ -602,7 +600,7 @@
                 and appliances. These issues can reduce the lifespan and
                 efficiency of your appliances.
               </p>
-            </div>
+            </div> -->
             <div id="section2-2-2" class="box-regular">
               <h3>
                 <img src="../../icons/lead.png" />
@@ -669,16 +667,11 @@
               <div class="paramter-line"></div>
               <h4>Potential source and meaning</h4>
               <p>
-                Water hardness happens because of high levels of dissolved
-                minerals, mostly calcium and magnesium. These minerals often
-                come from limestone, chalk, or gypsum deposits.
+                Disinfectant is added at the treatment plant to control the growth of bacteria and viruses in the water. It helps ensure that the water reaching your house is safe to drink. Low levels of disinfectant should be present in the water to maintain its safety. 
               </p>
               <h4>Why should you care</h4>
               <p>
-                Water hardness is important because it can affect your plumbing,
-                make soap less effective, and leave mineral deposits on dishes
-                and appliances. These issues can reduce the lifespan and
-                efficiency of your appliances.
+                A certain amount of disinfectant is needed when the water enters your home. This helps make sure no harmful bacteria grows between the treatment plant and your home.
               </p>
             </div>
           </div>
@@ -1429,11 +1422,11 @@
             <p>If you have concerns about water quality...</p>
             <div class="box-regular">
               <h3>
-                <img src="../../icons/phone.svg" />Contact Texas Commission on
-                Environmental Quality (TCEQ)
+                <img src="../../icons/phone.svg"/>
+                <div style="margin-left: 8px;">Contact Texas Commission on Environmental Quality (TCEQ)</div>
               </h3>
               <p style="margin: 16px 0">
-                TCEQ has set standards for drinking water quality
+                TCEQ has set standards for drinking water quality 
               </p>
               <p>
                 If you have concerns, you can report the problem anonymously or
@@ -1454,7 +1447,7 @@
                       src="../../icons/link-2.svg"
                     />
                     <a
-                      href="https://www.cdc.gov/drinking-water/about/about-bottled-water-safety.html"
+                      href="https://www.tceq.texas.gov/permitting/e-reporting.html"
                       target="_blank"
                       style="color: #252a31"
                       >Online Report Portal</a
@@ -1506,7 +1499,7 @@
                       src="../../icons/link-2.svg"
                     />
                     <a
-                      href="https://www.austintexas.gov/content/austin-water"
+                      href="{{water_utility.website}}"
                       target="_blank"
                       style="color: #252a31"
                       >Official Website</a
@@ -1598,8 +1591,8 @@
             </div>
             <div class="box-regular">
               <h3>
-                <img src="../../icons/report.svg" />Report any water quality
-                issues in the WCWH app
+                <img src="../../icons/report.svg" />
+                <div style="margin-left: 8px;">Report any water quality issues in the WCWH app</div>
               </h3>
               <p style="margin: 16px 0">
                 We may not be able to respond right away, but these reports will
