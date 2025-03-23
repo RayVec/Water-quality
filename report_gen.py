@@ -54,7 +54,8 @@ file_path = 'data.json'  # Replace with your file path
 # Load the shared configuration for water utilities
 with open('config.json', 'r') as config_file:
     config = json.load(config_file)
-    water_utilities = config['waterUtilities']  # Get water utilities from config
+    water_utilities = config.get('waterUtilities', {})  # Get water utilities from config
+    parameters = config['parameters']['all']  # Load parameter list from config
 
 with open(file_path, 'r') as file:
     records = json.load(file)  # Load the JSON data as a Python list
@@ -62,16 +63,31 @@ with open(file_path, 'r') as file:
     for record in records:
         record['date'] = datetime.strptime(str(record["Sample_date"]), '%m/%d/%Y').strftime('%Y-%m-%d')
         record["Participant_ID"] = record["Participant ID"]
-        for parameter in ["Disinfectant", 'Nitrate', 'Nitrite', 'pH', 'Turbidity', 'Lead', 'Bacteria']:
+        
+        # Add a list to track which parameters to display
+        record["display_parameters"] = []
+        
+        for parameter in parameters:  # Use parameters from config instead of hardcoded list
+            # Check if the parameter has non-null values for any location
+            has_values = False
+            for location in ["Outdoor", "FF", "AF"]:
+                if record.get(f"{parameter}_{location}") is not None:
+                    has_values = True
+                    break
+            
+            # Only include parameter in display list if it has values
+            if has_values:
+                record["display_parameters"].append(parameter)
+            
             # if parameter's outdoor, af and ff standard are all 1, then set the parameter_standard to 1, or set it to be 0
             if record[parameter+'_Outdoor_Standard'] in [1,None] and record[parameter+'_FF_Standard'] in [1,None] and record[parameter+'_AF_Standard'] in [1,None]:
                 record[parameter+'_Standard'] = 1
             else:
                 record[parameter+'_Standard'] = 0
 
-            water_utility=record["Water System"]
-            if water_utility in water_utilities:
-                record["water_utility"] = water_utilities[water_utility]
+        water_utility=record["Water System"]
+        if water_utility in water_utilities:
+            record["water_utility"] = water_utilities[water_utility]
         gen_template(record)
     # for record in records:
     #     print(record)

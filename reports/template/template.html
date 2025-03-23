@@ -341,38 +341,39 @@
                     Disinfectant: Free chlorine OR Chloramine
                   </li>
                   <div class="list-half">
-                    <li
-                      class="{% if Lead_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}"
-                    >
+                    {% if 'Lead' in display_parameters %}
+                    <li class="{% if Lead_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}">
                       Lead
                     </li>
-                    <li
-                      class="{% if Nitrate_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}"
-                    >
+                    {% endif %}
+                    
+                    {% if 'Nitrate' in display_parameters %}
+                    <li class="{% if Nitrate_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}">
                       Nitrate
                     </li>
-                    <li
-                      class="{% if Nitrite_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}"
-                    >
+                    {% endif %}
+                    
+                    {% if 'Nitrite' in display_parameters %}
+                    <li class="{% if Nitrite_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}">
                       Nitrite
                     </li>
+                    {% endif %}
+                    
                     <li class="parameter-no-standard">Ammonia</li>
-                    <li
-                      class="{% if Bacteria_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}"
-                    >
+                    
+                    {% if 'Bacteria' in display_parameters %}
+                    <li class="{% if Bacteria_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}">
                       Bacteria (E. Coli)
                     </li>
-                    <li
-                      class="{% if Turbidity_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}"
-                    >
+                    {% endif %}
+                    
+                    {% if 'Turbidity' in display_parameters %}
+                    <li class="{% if Turbidity_Standard == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}">
                       Turbidity
                     </li>
-                    <li
-                      class="parameter-no-standard"
-                    >
-                      pH
-                    </li>
-                    <!-- <li class="parameter-no-standard">Hardness</li> -->
+                    {% endif %}
+                    
+                    <li class="parameter-no-standard">pH</li>
                   </div>
                 </div>
                 <div class="dotted-line"></div>
@@ -499,7 +500,7 @@
           </div>
         </div>
       </div>
-    </article>
+    </article>  
     <article id="page3">
       <div class="header">
         <div class="container">
@@ -601,6 +602,7 @@
                 efficiency of your appliances.
               </p>
             </div> -->
+            {% if 'Disinfectant' in display_parameters %}
             <div id="section2-2-2" class="box-regular">
               <h3>
                 <img src="../../icons/lead.png" />
@@ -675,6 +677,7 @@
               </p>
             </div>
           </div>
+          {% endif %}
         </div>
       </div>
       <div class="header">
@@ -703,6 +706,7 @@
       <div class="content">
         <div class="chapter">
           <div class="section">
+            {% if 'Lead' in display_parameters %}
             <div id="section2-2-3" class="box-regular">
               <h3>
                 <img src="../../icons/lead-1.png" />
@@ -784,6 +788,8 @@
                 for pregnant women and young children.
               </p>
             </div>
+            {% endif %}
+            {% if 'Nitrate' in display_parameters %}
             <div id="section2-2-4" class="box-regular">
               <h3>
                 <img src="../../icons/Nitrate.png" />
@@ -856,6 +862,7 @@
             </div>
           </div>
         </div>
+        {% endif %}
       </div>
       <div class="header">
         <div class="container">
@@ -883,6 +890,7 @@
       <div class="content">
         <div class="chapter">
           <div class="section">
+            {% if 'Nitrite' in display_parameters %}
             <div id="section2-2-5" class="box-regular">
               <h3>
                 <img src="../../icons/Nitrite.png" />
@@ -953,7 +961,8 @@
               <h4>Why should you care</h4>
               <p>High levels of these substances can harm your health.</p>
             </div>
-
+            {% endif %}
+            {% if 'Ammonia' in display_parameters %}  
             <div id="section2-2-6" class="box-regular">
               <h3>
                 <img src="../../icons/Ammonia.png" />
@@ -1019,6 +1028,8 @@
               <h4>Why should you care</h4>
               <p>High levels of these substances can harm your health.</p>
             </div>
+            {% endif %}
+            {% if 'Bacteria' in display_parameters %}
             <div id="section2-2-7" class="box-regular">
               <h3>
                 <img src="../../icons/Bacteria.png" />
@@ -1076,6 +1087,8 @@
               <h4>Why should you care</h4>
               <p>Presence of E. coli can cause sickness.</p>
             </div>
+            {% endif %}
+          
           </div>
         </div>
       </div>
@@ -1105,6 +1118,7 @@
       <div class="content">
         <div class="chapter">
           <div class="section">
+            {% if 'Turbidity' in display_parameters %}
             <div id="section2-2-8" class="box-regular">
               <h3>
                 <img src="../../icons/Turbidity.png" />
@@ -1181,6 +1195,8 @@
                 water has become contaminated.
               </p>
             </div>
+            {% endif %}
+            {% if 'pH' in display_parameters %}
             <div id="section2-2-9" class="box-regular">
               <h3>
                 <img src="../../icons/pH.png" />
@@ -1257,6 +1273,7 @@
                 water quality problems.
               </p>
             </div>
+            {% endif %}
           </div>
           <div id="section2-3" class="section">
             <h2>
