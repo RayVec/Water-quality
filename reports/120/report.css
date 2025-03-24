@@ -34,72 +34,72 @@
   height: 1730px;
 }
 @page page2 {
-  height: 2400px;
+  height: 2502px;
 }
 #page2 {
   page: page2;
-  height: 2400px;
+  height: 2502px;
 }
 @page page3 {
-  height: 2000px;
+  height: 1084px;
 }
 #page3 {
   page: page3;
-  height: 2000px;
+  height: 1084px;
 }
 @page page4 {
-  height: 2300px;
+  height: 2580px;
 }
 #page4 {
   page: page4;
-  height: 2300px;
+  height: 2580px;
 }
 @page page5 {
-  height: 3000px;
+  height: 2240px;
 }
 #page5 {
   page: page5;
-  height: 3000px;
+  height: 2240px;
 }
 @page page6 {
-  height: 2700px;
+  height: 2802px;
 }
 #page6 {
   page: page6;
-  height: 2700px;
+  height: 2802px;
 }
 
 @page page7 {
-  height: 2400px;
+  height: 2502px;
 }
 #page7 {
   page: page7;
-  height: 2400px;
+  height: 2502px;
 }
 @page page8 {
-  height: 2500px;
+  height: 2602px;
 }
 #page8 {
   page: page8;
-  height: 2500px;
+  height: 2602px;
 }
 @page page9 {
-  height: 1950px;
+  height: 2113px;
 }
 #page9 {
   page: page9;
-  height: 1950px;
+  height: 2113px;
 }
 @page page10 {
-  height: 1400px;
+  height: 1502px;
 }
 #page10 {
   page: page10;
-  height: 1400px;
+  height: 1502px;
 }
 #cover {
   position: relative;
-  background: url("./images/cover-background.png") no-repeat center;
+  background: url("../../images/cover-background.png") no-repeat center;
   background-size: cover;
   height: 755px;
   padding: 1px 0;

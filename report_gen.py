@@ -4,6 +4,8 @@ import subprocess
 import json
 from datetime import datetime
 import logging
+import shutil
+from height_calculation import calculate_rendered_height
 
 # Configure logging
 logging.basicConfig(
@@ -47,7 +49,76 @@ def gen_template(record):
     with open(output_file_name, 'w') as f:
         f.write(output)
         f.flush()
+    
+    # Create custom CSS file with dynamically calculated heights
+    generate_custom_css(output_file_name, id)
+    
     gen_report(output_file_name)
+
+def generate_custom_css(html_file_path, participant_id):
+    """
+    Generate a custom CSS file with dynamically calculated page heights
+    
+    Args:
+        html_file_path (str): Path to the HTML file to analyze
+        participant_id (str): Participant ID (for directory structure)
+    """
+    logging.info(f"Generating custom CSS with dynamic page heights for {html_file_path}")
+    
+    # Read the template CSS file
+    template_css_path = "./reports/template/report.css"
+    css_content = ""
+    with open(template_css_path, 'r', encoding='utf-8') as css_file:
+        css_content = css_file.read()
+    
+    # List of pages to measure
+    pages_to_measure = ["page2", "page3", "page4", "page5", "page6", "page7", "page8", "page9", "page10"]
+    
+    # Calculate height for each page
+    import re
+    for page_id in pages_to_measure:
+        try:
+            height = calculate_rendered_height(html_file_path, css_content, page_id)
+            height = height+2
+            # Add some padding to ensure content fits (adjust as needed)
+            # height_with_padding = height + 50
+            
+            logging.info(f"Calculated height for {page_id}: {height}px ")
+            
+            # Replace height in @page rule
+            css_content = re.sub(
+                r'(@page\s+' + page_id + r'\s*\{\s*height\s*:\s*)[^;]+;', 
+                r'\g<1>' + str(height) + 'px;', 
+                css_content
+            )
+            
+            # If #pageX has a height property, update it
+            if re.search(r'#' + page_id + r'\s*\{[^\}]*height\s*:', css_content):
+                css_content = re.sub(
+                    r'(#' + page_id + r'\s*\{[^\}]*height\s*:\s*)[^;]+;', 
+                    r'\g<1>' + str(height) + 'px;', 
+                    css_content
+                )
+            # If #pageX exists but doesn't have a height property, add it
+            elif re.search(r'#' + page_id + r'\s*\{', css_content):
+                css_content = re.sub(
+                    r'(#' + page_id + r'\s*\{)([^\}]*)\}', 
+                    r'\g<1>\g<2>  height: ' + str(height) + 'px;\n}', 
+                    css_content
+                )
+            # If #pageX doesn't exist, create it
+            else:
+                css_content += f"\n#{page_id} {{\n  height: {height}px;\n  page: {page_id};\n}}"
+            
+        except Exception as e:
+            logging.error(f"Error calculating height for {page_id}: {str(e)}")
+    
+    # Write the updated CSS to the participant's directory
+    participant_css_path = os.path.dirname(html_file_path) + "/report.css"
+    with open(participant_css_path, 'w', encoding='utf-8') as css_file:
+        css_file.write(css_content)
+    
+    logging.info(f"Custom CSS file created at {participant_css_path}")
 
 file_path = 'data.json'  # Replace with your file path
 
