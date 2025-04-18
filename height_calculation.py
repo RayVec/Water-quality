@@ -5,18 +5,18 @@ from selenium.webdriver.common.by import By
 import time
 import tempfile
 
-def calculate_rendered_height(html_path, css_code=None, element_id=None, width=800):
+def calculate_rendered_heights(html_path, css_code=None, element_ids=None, width=800):
     """
-    Calculate the rendered height of a specific element from an HTML file
+    Calculate the rendered height of multiple elements from an HTML file using a single browser instance
     
     Args:
         html_path (str): Path to the HTML file to render
         css_code (str, optional): Additional CSS code to apply. If None, only the CSS in the HTML file is used.
-        element_id (str): The ID of the element whose height we want to measure
+        element_ids (list): List of element IDs to measure
         width (int, optional): The width to render the content at. Defaults to 800px.
         
     Returns:
-        int: The height of the rendered element in pixels
+        dict: Dictionary mapping element IDs to their heights in pixels
     """
     # Get the absolute path of the HTML file
     abs_html_path = os.path.abspath(html_path)
@@ -43,15 +43,19 @@ def calculate_rendered_height(html_path, css_code=None, element_id=None, width=8
             """)
         
         # Wait for the page to render and images to load
-        time.sleep(0.2)  # Increase wait time to allow for image loading
+        time.sleep(0.5)  # Increase wait time to allow for image loading
         
-        # Find the element by ID and get its height
-        element = driver.find_element(By.ID, element_id)
+        # Get heights for all requested elements
+        heights = {}
+        for element_id in element_ids:
+            try:
+                element = driver.find_element(By.ID, element_id)
+                heights[element_id] = element.size['height']
+            except Exception as e:
+                print(f"Error getting height for {element_id}: {str(e)}")
+                heights[element_id] = None
         
-        # Get the computed height
-        height = element.size['height']
-        
-        return height
+        return heights
     
     except Exception as e:
         raise Exception(f"Error calculating height: {str(e)}")
@@ -61,10 +65,27 @@ def calculate_rendered_height(html_path, css_code=None, element_id=None, width=8
         if 'driver' in locals():
             driver.quit()
 
+# Keep the original function for backward compatibility
+def calculate_rendered_height(html_path, css_code=None, element_id=None, width=800):
+    """
+    Calculate the rendered height of a specific element from an HTML file
+    
+    Args:
+        html_path (str): Path to the HTML file to render
+        css_code (str, optional): Additional CSS code to apply. If None, only the CSS in the HTML file is used.
+        element_id (str): The ID of the element whose height we want to measure
+        width (int, optional): The width to render the content at. Defaults to 800px.
+        
+    Returns:
+        int: The height of the rendered element in pixels
+    """
+    result = calculate_rendered_heights(html_path, css_code, [element_id], width)
+    return result.get(element_id)
+
 def test_template_heights():
     """Test function to measure heights of various elements in the template.html"""
-    # Specify the path to the template HTML file
-    template_path = os.path.abspath("reports/template/template.html")
+    # Specify the path to the HTML file
+    report_path = os.path.abspath("reports/7/2024-09-07.html")
     
     # Load additional CSS if needed (optional)
     css_path = "report.css"
@@ -77,7 +98,7 @@ def test_template_heights():
         print(f"CSS file not found at {css_path}. Using only CSS in the HTML file.")
         css_content = None
     
-    # List of element IDs to measure from the template
+    # List of element IDs to measure from the report
     elements_to_measure = [
         "page2",
         "page3",
@@ -91,13 +112,13 @@ def test_template_heights():
     ]
     
     # Measure each element and print results
-    print("Element Heights in Template:")
+    print("Element Heights in Report:")
     print("-" * 40)
     
     for element_id in elements_to_measure:
         try:
             # Measure the height using the direct HTML file path
-            height = calculate_rendered_height(template_path, css_content, element_id)
+            height = calculate_rendered_height(report_path, css_content, element_id)
             print(f"{element_id}: {height}px")
         except Exception as e:
             print(f"{element_id}: Error - {str(e)}")

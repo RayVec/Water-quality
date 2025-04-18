@@ -47,7 +47,7 @@ def main():
     os.chdir(project_dir)
     
     # Define input file path
-    input_file_path = os.path.join(project_dir, 'B6_Data_Converted.csv')
+    input_file_path = os.path.join(project_dir, 'data_source.xlsx')
     
     print(f"Starting data processing pipeline in {project_dir}")
     

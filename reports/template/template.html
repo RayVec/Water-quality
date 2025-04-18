@@ -103,64 +103,74 @@
           </div>
           <div class="heading2">
             <div class="title">
-              <a href="#section2-2">WCWH results of 8 measures</a>
+              <a href="#section2-2">WCWH results of {{ display_parameters|length }} measures</a>
             </div>
             <div class="page">3</div>
           </div>
-          <!-- <div class="heading2">
-            <div class="title" style="margin-left: 30px">
-              <a href="#section2-2-1">Hardness</a>
-            </div>
-            <div class="page">3</div>
-          </div> -->
+          {% if 'Disinfectant' in display_parameters %}
           <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-2">Disinfectant</a>
             </div>
             <div class="page">3</div>
           </div>
+          {% endif %}
+          {% if 'Lead' in display_parameters %}
           <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-3">Lead</a>
             </div>
             <div class="page">4</div>
           </div>
+          {% endif %}
+          {% if 'Nitrate' in display_parameters %}
           <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-4">Nitrate</a>
             </div>
             <div class="page">4</div>
           </div>
+          {% endif %}
+          {% if 'Nitrite' in display_parameters %}
           <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-5">Nitrite</a>
             </div>
             <div class="page">5</div>
           </div>
+          {% endif %}
+          {% if 'Ammonia' in display_parameters %}
           <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-6">Ammonia</a>
             </div>
             <div class="page">5</div>
           </div>
+          {% endif %}
+          {% if 'Bacteria' in display_parameters %}
           <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-7">Bacteria</a>
             </div>
             <div class="page">5</div>
           </div>
+          {% endif %}
+          {% if 'Turbidity' in display_parameters %}
           <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-8">Turbidity</a>
             </div>
             <div class="page">5</div>
           </div>
+          {% endif %}
+          {% if 'pH' in display_parameters %}
           <div class="heading2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-9">pH</a>
             </div>
             <div class="page">6</div>
           </div>
+          {% endif %}
           <div class="heading2">
             <div class="title">
               <a href="#section2-3">Your water utility's annual report</a>
@@ -203,12 +213,12 @@
             </div>
             <div class="page">8</div>
           </div>
-          <div class="heading2">
+          <!-- <div class="heading2">
             <div class="title">
               <a href="#section4-2">WCWH sampling scope</a>
             </div>
             <div class="page">8</div>
-          </div>
+          </div> -->
           <div class="heading2">
             <div class="title">
               <a href="#section4-3"
@@ -278,12 +288,12 @@
               <p style="margin-bottom: 8px">
                 Date of water sample: {{ Sample_date }}
               </p>
+              {% if Overall_Result == 1 %} 
               <div style="color: #abbf63">
                 <div
                   style="font-size: 32px; font-weight: 700; margin-bottom: 16px"
                 >
-                  {% if Overall_Result == 1 %} In acceptable range {% else %}
-                  Out of acceptable range {% endif %}
+                In acceptable range
                 </div>
                 <div style="display: flex; margin-bottom: 16px">
                   <img style="margin-right: 10px" src="../../icons/yes.svg" />
@@ -293,7 +303,7 @@
                     </div>
                     <a
                       style="color: #abbf63"
-                      href="{{water_utility.annual_report}}"
+                      href="{{Water_System_Report_Link}}"
                       >View your water utility's annual report</a
                     >
                   </div>
@@ -321,6 +331,24 @@
                   You don't need to take any action right now.
                 </div>
               </div>
+              {% else %}
+              <div style="color: #abbf63">
+                <div
+                  style="font-size: 32px; font-weight: 700; margin-bottom: 16px"
+                >
+                {{ in_range_count }} out of {{ total_parameters_count }} parameters are within acceptable range.
+                </div>
+              </div>
+              {% if Results is not none %}
+              <div style="margin-bottom: 16px">
+                <p>{{ Results }}</p>
+              </div>
+              {% endif %}
+              {% endif %}
+              
+              
+              
+              
               <div
                 style="
                   background-color: #717171;
@@ -329,12 +357,12 @@
                 "
               ></div>
               <h3>
-                <img src="../../icons/parameters.svg" />Parameters' snapshots
+                <img src="../../icons/parameters.svg" />Parameters' snapshot
               </h3>
 
               <div>
                 <div style="margin-bottom: 8px">
-                  WCWH test is based on 8 parameters:
+                  The WCWH test is based on {{ display_parameters|length }} parameters:
                 </div>
                 <div style="padding-left: 12px">
                   <li class="{% if Disinfectant_Overall == 1 %}parameter-acceptable{% else %}parameter-out-of-range{% endif %}">
@@ -389,6 +417,18 @@
                 </div>
               </div>
             </div>
+
+            <!-- <h3 style="margin-top: 16px">
+              These parameters are not tested:
+            </h3>
+
+            <div style="margin-top: 16px">
+              <div style="background-color: #F0F0F0; border-radius: 8px; padding: 8px;">
+                <h3 style="margin-bottom: 8px">Paramter name</h3>
+                <p>Reason why it's not tested</p>
+              </div>
+            </div> -->
+
             <!-- <h3 style="margin-top: 16px">
               <img src="../../icons/history.svg" />Your Test Result History
             </h3>
@@ -404,9 +444,22 @@
               <div style="flex: 1">06/01/2023</div>
               <div style="color: #abbf63">In acceptable range</div>
             </div> -->
+            {% if not_tested_parameters|length > 0 %}
+            <h3 style="margin-top: 16px">
+              These parameters were not tested:
+            </h3>
+            {% for p in not_tested_parameters %}
+            <div style="margin-top: 16px">
+              <div style="background-color: #F0F0F0; border-radius: 8px; padding: 8px;">
+                <h3 style="margin-bottom: 8px">{{ p.name }}</h3>
+                <p>{{ p.reason }}</p>
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
           </div>
           <div id="notice" class="section">
-            <h2><img src="../../icons/notice.svg" />Importance Note</h2>
+            <h2><img src="../../icons/notice.svg" />Important Note</h2>
             <div class="box-regular">
               <h3>
                 This report does not show the complete picture of your water
@@ -414,7 +467,7 @@
               </h3>
               <p style="margin-top: 8px">
                 The EPA has legal limits for over 90 contaminants. Whole
-                Communities-Whole Health tests for 9 contaminants in drinking
+                Communities-Whole Health tests for {{ display_parameters|length }} contaminants in drinking
                 water because of time and cost.
               </p>
               <p style="margin-top: 8px">
@@ -453,14 +506,11 @@
             <h2><img src="../../icons/glossary.svg" />Glossary</h2>
             <div class="box-info">
               <p>
-                <strong>Acceptable range </strong> is based on EPA and TCEQ
-                regulations
+                <strong>Acceptable range </strong>is based on regulations from the Environmental Protection Agency (EPA) and the Texas Commission on Environmental Quality (TCEQ)
               </p>
               <p>
                 <strong>Outdoor water quality measures</strong>
-                are based on the samples that were collected outside your home
-                reflect the quality of the water that the water utility company
-                provides to your home at the time the sample was taken.
+                are based on the samples that were collected outside your home and reflect the quality of the water that the water utility company provides to your home at the time the sample was taken.
               </p>
               <p>
                 <strong>Indoor water quality measures</strong>
@@ -481,7 +531,7 @@
               </p>
               <p>
                 <strong>Met governmental standards</strong>
-                refers to whether the measures meet the Texas Commission on
+                refers to whether the parameters meet the standards(?) of the Texas Commission on
                 Environmental Quality
               </p>
             </div>
@@ -515,16 +565,13 @@
         <div class="chapter">
           <div id="section2-2" class="section">
             <h2>
-              <img src="../../icons/level.svg" />WCWH results of 9 measures
+              <img src="../../icons/level.svg" />WCWH results of {{ display_parameters|length }} measures
             </h2>
             <img
               src="../../icons/measures.png"
               style="width: 100%; border-radius: 8px; margin-bottom: 16px"
             />
-            <h3><img src="../../icons/Info-square.svg" />Notice</h3>
-            <p>Except for Lead, parameters are not tested in a certified lab</p>
-            <div class="paramter-line"></div>
-            <h3>
+                        <h3>
               <img src="../../icons/date.svg" style="padding-right: 3px" />Date
               of water sample
             </h3>
@@ -536,148 +583,102 @@
               <span style="margin-right: 8px">L: liter</span>
               <span style="margin-right: 8px">µg: microgram</span>
               <span style="margin-right: 8px"
-                >Nephelometric: Turbidity Unit</span
+                >NTU: Nephelometric Turbidity Unit</span
               >
             </div>
-
-            <!-- <div id="section2-2-1" class="box-regular">
-              <h3>
-                <img src="../../icons/hardness.png" />
-                Hardness
-              </h3>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-no-standard-sample"></div>
-                <span>There is no regulated standard for this parameter</span>
+           
+          </div>
+          {% if 'Disinfectant' in display_parameters %}
+          <div id="section2-2-2" class="box-regular">
+            <h3>
+              <img src="../../icons/lead.png" />
+              <span style="max-width: 259px"
+                >Disinfectant: Free chlorine OR Chloramine</span
+              >
+            </h3>
+            <div style="display: flex; align-items: center; margin-top: 12px">
+              <div class="bar-acceptable-range-sample"></div>
+              <span>Acceptable range</span>
+            </div>
+            <div style="display: flex; align-items: center; margin-top: 12px">
+              <div class="bar-out-of-acceptable-range-sample"></div>
+              <span>Out of acceptable range</span>
+            </div>
+            <div class="paramter-line"></div>
+            <h4>Outdoor</h4>
+            <div class="parameter-metric">
+              <div class="parameter-metric-name">Your level (mg/L)</div>
+              <div class="parameter-bar">
+                <img
+                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_Outdoor.png"
+                />
               </div>
-              <div class="paramter-line"></div>
-              <h4>Outdoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your level (mg/L)</div>
-                <div class="parameter-bar">
-                  <img src="../../images/water-bar-0.png" width="200" />
-                </div>
-              </div>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Average community level</div>
-                <div class="parameter-bar">
-                  <img src="../../images/water-bar-0.png" />
-                </div>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Indoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your kitchen tap</div>
-                <div class="parameter-bar">
-                  <img src="../../images/water-bar-0.png" />
-                </div>
-              </div>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Average community level for kitchen tap
-                </div>
-                <div class="parameter-bar">
-                  <img src="../../images/water-bar-0.png" />
-                </div>
-              </div>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Your filtered drinking water
-                </div>
-                <div class="parameter-bar">
-                  <img src="../../images/water-bar-0.png" />
-                </div>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Potential source and meaning</h4>
-              <p>
-                Water hardness happens because of high levels of dissolved
-                minerals, mostly calcium and magnesium. These minerals often
-                come from limestone, chalk, or gypsum deposits.
-              </p>
-              <h4>Why should you care</h4>
-              <p>
-                Water hardness is important because it can affect your plumbing,
-                make soap less effective, and leave mineral deposits on dishes
-                and appliances. These issues can reduce the lifespan and
-                efficiency of your appliances.
-              </p>
-            </div> -->
-            {% if 'Disinfectant' in display_parameters %}
-            <div id="section2-2-2" class="box-regular">
-              <h3>
-                <img src="../../icons/lead.png" />
-                <span style="max-width: 259px"
-                  >Disinfectant: Free chlorine OR Chloramine</span
-                >
-              </h3>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-acceptable-range-sample"></div>
-                <span>Acceptable range</span>
-              </div>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-out-of-acceptable-range-sample"></div>
-                <span>Out of acceptable range</span>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Outdoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your level (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_Outdoor.png"
-                  />
-                </div>
-              </div>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Average community level</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_Outdoor_Average.png"
-                  />
-                </div>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Indoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your kitchen tap</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_FF.png"
-                  />
-                </div>
-              </div>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Average community level for kitchen tap
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_FF_Average.png"
-                  />
-                </div>
-              </div>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Your filtered drinking water
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_AF.png"
-                  />
-                </div>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Potential source and meaning</h4>
-              <p>
-                Disinfectant is added at the treatment plant to control the growth of bacteria and viruses in the water. It helps ensure that the water reaching your house is safe to drink. Low levels of disinfectant should be present in the water to maintain its safety. 
-              </p>
-              <h4>Why should you care</h4>
-              <p>
-                A certain amount of disinfectant is needed when the water enters your home. This helps make sure no harmful bacteria grows between the treatment plant and your home.
-              </p>
+            </div>
+            {% if Disinfectant_Outdoor_Evaluation is not none %}
+            <div style="padding-left: 12px;">
+              <p>{{ Disinfectant_Outdoor_Evaluation }}</p>
             </div>
             {% endif %}
+            <div class="parameter-metric">
+              <div class="parameter-metric-name">Average community level</div>
+              <div class="parameter-bar">
+                <img
+                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_Outdoor_Average.png"
+                />
+              </div>
+            </div>
+            <div class="paramter-line"></div>
+            <h4>Indoor</h4>
+            <div class="parameter-metric">
+              <div class="parameter-metric-name">Your kitchen tap</div>
+              <div class="parameter-bar">
+                <img
+                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_FF.png"
+                />
+              </div>
+            </div>
+            {% if Disinfectant_FF_Evaluation is not none %}
+            <div style="padding-left: 12px;">
+              <p>{{ Disinfectant_FF_Evaluation }}</p>
+            </div>
+            {% endif %}
+            <div class="parameter-metric">
+              <div class="parameter-metric-name">
+                Average community level for kitchen tap
+              </div>
+              <div class="parameter-bar">
+                <img
+                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_FF_Average.png"
+                />
+              </div>
+            </div>
+           
+            <div class="parameter-metric">
+              <div class="parameter-metric-name">
+                Your filtered drinking water
+              </div>
+              <div class="parameter-bar">
+                <img
+                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_AF.png"
+                />
+              </div>
+            </div>
+            {% if Disinfectant_AF_Evaluation is not none %}
+            <div style="padding-left: 12px;">
+              <p>{{ Disinfectant_AF_Evaluation }}</p>
+            </div>
+            {% endif %}
+            <div class="paramter-line"></div>
+            <h4>Potential source and meaning</h4>
+            <p>
+              Disinfectant is added at the treatment plant to control the growth of bacteria and viruses in the water. It helps ensure that the water reaching your house is safe to drink. Low levels of disinfectant should be present in the water to maintain its safety.
+            </p>
+            <h4>Why you should care</h4>
+            <p>
+              A certain amount of disinfectant is needed when the water enters your home. This helps make sure no harmful bacteria grows between the treatment plant and your home.
+            </p>
           </div>
+          {% endif %}
         </div>
       </div>
       <div class="header">
@@ -720,23 +721,30 @@
                 <div class="bar-out-of-acceptable-range-sample"></div>
                 <span>Out of acceptable range</span>
               </div>
-              <div style="display: flex; align-items: center; margin-top: 12px">
+              <!-- <div style="display: flex; align-items: center; margin-top: 12px">
                 <img
                   src="../../icons/certification.svg"
                   style="margin-right: 8px"
                 />
                 <span>Lead test was done in a certified lab</span>
-              </div>
+              </div> -->
               <div class="paramter-line"></div>
+              
+              {% if Lead_Outdoor is not none %}
               <h4>Outdoor</h4>
               <div class="parameter-metric">
-                <div class="parameter-metric-name">Your level (mg/L)</div>
+                <div class="parameter-metric-name">Your level (μg/L)</div>
                 <div class="parameter-bar">
                   <img
                     src="../../images/output/{{ Participant_ID }}/{{ date }}/Lead_Outdoor.png"
                   />
                 </div>
               </div>
+              {% if Lead_Outdoor_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Lead_Outdoor_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">Average community level</div>
                 <div class="parameter-bar">
@@ -746,15 +754,21 @@
                 </div>
               </div>
               <div class="paramter-line"></div>
+              {% endif %}
               <h4>Indoor</h4>
               <div class="parameter-metric">
-                <div class="parameter-metric-name">Your kitchen tap</div>
+                <div class="parameter-metric-name">Your kitchen tap (μg/L)</div>
                 <div class="parameter-bar">
                   <img
                     src="../../images/output/{{ Participant_ID }}/{{ date }}/Lead_FF.png"
                   />
                 </div>
               </div>
+              {% if Lead_FF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Lead_FF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">
                   Average community level for kitchen tap
@@ -765,9 +779,10 @@
                   />
                 </div>
               </div>
+              {% if Lead_AF is not none %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">
-                  Your filtered drinking water
+                  Your filtered drinking water (μg/L)
                 </div>
                 <div class="parameter-bar">
                   <img
@@ -775,6 +790,12 @@
                   />
                 </div>
               </div>
+              {% endif %}
+              {% if Lead_AF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Lead_AF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="paramter-line"></div>
               <h4>Potential source and meaning</h4>
               <p>
@@ -782,7 +803,7 @@
                 lead. When these corrode, they can increase the levels of lead
                 in drinking water.
               </p>
-              <h4>Why should you care</h4>
+              <h4>Why you should care</h4>
               <p>
                 High lead levels can cause harmful health effects, especially
                 for pregnant women and young children.
@@ -814,6 +835,11 @@
                   />
                 </div>
               </div>
+              {% if Nitrate_Outdoor_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Nitrate_Outdoor_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">Average community level</div>
                 <div class="parameter-bar">
@@ -832,6 +858,11 @@
                   />
                 </div>
               </div>
+              {% if Nitrate_FF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Nitrate_FF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">
                   Average community level for kitchen tap
@@ -852,12 +883,17 @@
                   />
                 </div>
               </div>
+              {% if Nitrate_AF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Nitrate_AF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="paramter-line"></div>
               <h4>Potential source and meaning</h4>
               <p>
                 Runoff from fertilizer use; leaching from septic tanks, sewage.
               </p>
-              <h4>Why should you care</h4>
+              <h4>Why you should care</h4>
               <p>High levels of these substances can harm your health.</p>
             </div>
           </div>
@@ -915,6 +951,11 @@
                   />
                 </div>
               </div>
+              {% if Nitrite_Outdoor_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Nitrite_Outdoor_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">Average community level</div>
                 <div class="parameter-bar">
@@ -933,6 +974,11 @@
                   />
                 </div>
               </div>
+              {% if Nitrite_FF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Nitrite_FF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">
                   Average community level for kitchen tap
@@ -952,13 +998,18 @@
                     src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrite_AF.png"
                   />
                 </div>
+                </div>
+              {% if Nitrite_AF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Nitrite_AF_Evaluation }}</p>
               </div>
+              {% endif %}
               <div class="paramter-line"></div>
               <h4>Potential source and meaning</h4>
               <p>
                 Runoff from fertilizer use; leaching from septic tanks, sewage.
               </p>
-              <h4>Why should you care</h4>
+              <h4>Why you should care</h4>
               <p>High levels of these substances can harm your health.</p>
             </div>
             {% endif %}
@@ -982,6 +1033,11 @@
                   />
                 </div>
               </div>
+              {% if Ammonia_Outdoor_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Ammonia_Outdoor_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">Average community level</div>
                 <div class="parameter-bar">
@@ -1000,6 +1056,11 @@
                   />
                 </div>
               </div>
+              {% if Ammonia_FF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Ammonia_FF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">
                   Average community level for kitchen tap
@@ -1020,12 +1081,17 @@
                   />
                 </div>
               </div>
+              {% if Ammonia_AF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Ammonia_AF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="paramter-line"></div>
               <h4>Potential source and meaning</h4>
               <p>
                 Runoff from fertilizer use; leaching from septic tanks, sewage.
               </p>
-              <h4>Why should you care</h4>
+              <h4>Why you should care</h4>
               <p>High levels of these substances can harm your health.</p>
             </div>
             {% endif %}
@@ -1045,6 +1111,11 @@
                 <div class="parameter-metric-name">Your level</div>
                 <div class="parameter-metric-value">{% if Bacteria_Outdoor == "0" %}Not detected{% else %}{{ Bacteria_Outdoor }}{% endif %}</div>
               </div>
+              {% if Bacteria_Outdoor_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Bacteria_Outdoor_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric-binary">
                 <div class="parameter-metric-name">Met governmental standards?</div>
                 <div class="parameter-metric-value">{% if Bacteria_Standard == 1 %}Yes{% else %}No{% endif %}</div>
@@ -1060,6 +1131,11 @@
                 <div class="parameter-metric-name">Your kitchen tap</div>
                 <div class="parameter-metric-value">{% if Bacteria_FF == "0" %}Not detected{% else %}{{ Bacteria_FF }}{% endif %}</div>
               </div>
+              {% if Bacteria_FF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Bacteria_FF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric-binary">
                 <div class="parameter-metric-name">
                   Met governmental standards?
@@ -1076,6 +1152,11 @@
                 <div class="parameter-metric-name">Filtered drinking water</div>
                 <div class="parameter-metric-value">{% if Bacteria_AF == "0" %}Not detected{% else %}{{ Bacteria_AF }}{% endif %}</div>
               </div>
+              {% if Bacteria_AF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Bacteria_AF_Evaluation }}</p>
+              </div>
+              {% endif %}
 
               <div class="paramter-line"></div>
               <h4>Potential source and meaning</h4>
@@ -1084,7 +1165,7 @@
                 means there could be waste or sewage in the water, which can be
                 dangerous for your health.
               </p>
-              <h4>Why should you care</h4>
+              <h4>Why you should care</h4>
               <p>Presence of E. coli can cause sickness.</p>
             </div>
             {% endif %}
@@ -1143,6 +1224,11 @@
                   />
                 </div>
               </div>
+              {% if Turbidity_Outdoor_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Turbidity_Outdoor_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">Average community level</div>
                 <div class="parameter-bar">
@@ -1161,6 +1247,11 @@
                   />
                 </div>
               </div>
+              {% if Turbidity_FF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Turbidity_FF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">
                   Average community level for kitchen tap
@@ -1181,6 +1272,11 @@
                   />
                 </div>
               </div>
+              {% if Turbidity_AF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ Turbidity_AF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="paramter-line"></div>
               <h4>Potential source and meaning</h4>
               <p>
@@ -1188,7 +1284,7 @@
                 particles in it. It measures how clear or cloudy the water
                 appears.
               </p>
-              <h4>Why should you care</h4>
+              <h4>Why you should care</h4>
               <p>
                 High turbidity will give water a cloudy appearance. This does
                 not mean the water is unsafe necessarily, but could indicate the
@@ -1203,12 +1299,8 @@
                 pH
               </h3>
               <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-acceptable-range-sample"></div>
-                <span>Acceptable range</span>
-              </div>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-out-of-acceptable-range-sample"></div>
-                <span>Out of acceptable range</span>
+                <div class="bar-no-standard-sample"></div>
+                <span>There is no regulated standard for this parameter</span>
               </div>
 
               <div class="paramter-line"></div>
@@ -1221,6 +1313,11 @@
                   />
                 </div>
               </div>
+              {% if pH_Outdoor_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ pH_Outdoor_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">Average community level</div>
                 <div class="parameter-bar">
@@ -1239,6 +1336,11 @@
                   />
                 </div>
               </div>
+              {% if pH_FF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ pH_FF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="parameter-metric">
                 <div class="parameter-metric-name">
                   Average community level for kitchen tap
@@ -1259,6 +1361,11 @@
                   />
                 </div>
               </div>
+              {% if pH_AF_Evaluation is not none %}
+              <div style="padding-left: 12px;">
+                <p>{{ pH_AF_Evaluation }}</p>
+              </div>
+              {% endif %}
               <div class="paramter-line"></div>
               <h4>Potential source and meaning</h4>
               <p>
@@ -1266,10 +1373,10 @@
                 water is. Water with a pH below 6.5 is acidic. In Travis County,
                 the water is usually more basic.
               </p>
-              <h4>Why should you care</h4>
+              <h4>Why you should care</h4>
               <p>
                 Water is safe to drink if its pH is between 6.5 and 9.5. Water
-                close to this range can still be safe, but it might indicate
+                outside this range can still be safe, but it might indicate
                 water quality problems.
               </p>
             </div>
@@ -1286,10 +1393,10 @@
               get your water utility's water quality report. This report shows
               that your water utility has met the government's required water
               quality standards. The report is based on samples collected
-              throughout the area in 2022.
+              throughout the area in 2023.
             </p>
             <p style="margin-top: 16px">
-              <a href="{{water_utility.annual_report}}" target="_blank"
+              <a href="{{Water_System_Report_Link}}" target="_blank"
                 >View your Annual Report here</a
               >
             </p>
@@ -1501,12 +1608,16 @@
                 utility. They will collect a water sample from your house for
                 testing.
               </p>
+              <p>
+                Whole Communities-Whole Health can also make an anonymous report
+                on your behalf if you would like
+              </p>
               <div class="paramter-line"></div>
               <div style="display: flex">
-                <div style="margin-right: 24px">
+                <div style="margin-right: 24px;text-align: center; max-width: 130px;">
                   <img src="{{water_utility.image}}" />
                   <div style="text-align: center; margin-top: 8px">
-                    <b>{{water_utility.name}}</b>
+                    <b>{{Water_System}}</b>
                   </div>
                 </div>
                 <div class="contact-list" style="max-width: 195px">
@@ -1527,7 +1638,7 @@
                       style="margin-right: 8px"
                       src="../../icons/phone-2.svg"
                     />
-                    {{water_utility.phone}}
+                    {{Water_System_Phone_Number}}
                   </div>
                   <div style="display: flex">
                     <img
@@ -1540,11 +1651,7 @@
                   </div>
                 </div>
               </div>
-              <div class="paramter-line"></div>
-              <p>
-                Whole Communities-Whole Health can also make an anonymous report
-                on your behalf if you would like
-              </p>
+              
             </div>
           </div>
         </div>
@@ -1619,8 +1726,7 @@
             </div>
             <div class="box-regular">
               <h3>
-                <img src="../../icons/neighbor.svg" />Talk to your neighbors in
-                the WCWH app
+                <img src="../../icons/neighbor.svg" />Talk to your neighbors
               </h3>
               <p style="margin: 16px 0">
                 Talk to your neighbors to see if they have similar concerns.
@@ -1639,7 +1745,7 @@
           </div>
           <div id="section4-1" class="section">
             <h2>
-              <img src="../../icons/spot-check.svg" />The test is a spot check
+              <img src="../../icons/spot-check.svg" />This test is a spot check
             </h2>
             <p>
               Samples were collected from:
@@ -1666,7 +1772,7 @@
               </p>
             </div>
           </div>
-          <div id="section4-2" class="section">
+          <!-- <div id="section4-2" class="section">
             <h2><img src="../../icons/spot-check.svg" />WCWH sampling scope</h2>
             <img src="../../icons/sample-scope-example.png" width="345px" />
             <p style="margin: 16px 0">
@@ -1678,7 +1784,7 @@
 
             <div class="box-notice">
               <p>
-                Through this way, we provide a more complete picture than a
+                This way, we provide a more complete picture than a
                 single sample, which is important because contaminant levels can
                 change due to various factors like:
                 <div style="padding-left: 8px">
@@ -1688,7 +1794,7 @@
                 </div>
               </p>
             </div>
-          </div>
+          </div> -->
           <p style="margin: 16px 0">As of June 2024, we have collected:</p>
           <img src="../../icons/sample-scope-figure.png" width="345px" />
         </div>
@@ -1725,7 +1831,7 @@
               Distribution of WCWH water samples by utility and water source
             </h2>
             <p style="margin-bottom: 16px">
-              The figures below show the distribution of homes samples by their
+              The figures below show the distribution of homes sampled by their
               water utility and where those utilities source their water.
             </p>
             <h3>Water Utilities</h3>
@@ -1763,7 +1869,7 @@
             <p style="margin: 16px 0">
               The Texas Commission on Environmental Quality (TCEQ) and the
               Environmental Protection Agency (EPA) have set standards for
-              drinking water quality. All water treatment plants in the country
+              drinking water quality. All water treatment plants in Texas
               must meet these standards.
             </p>
             <div class="box-notice">

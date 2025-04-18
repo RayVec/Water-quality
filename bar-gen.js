@@ -101,11 +101,14 @@ async function processRecords() {
     console.log(`Loaded ${records.length} records from data.json`);
 
     for (const record of records) {
-      const participantId = record["Participant ID"];
+      const participantId = record["Participant_ID"];
       let sampleDate = record["Sample_date"];
 
       if (!participantId || !sampleDate) {
-        console.log("Skipping record with missing ID or date:", record);
+        console.log(
+          "Skipping record with missing ID or date:",
+          record.Participant_ID
+        );
         continue;
       }
 
@@ -168,6 +171,33 @@ async function processRecords() {
             maxRange = maxValue;
           }
 
+          // Special handling for Disinfectant ranges based on source
+          if (parameter === "Disinfectant" && parameter_type === 1) {
+            // Check type is 1
+            const source = record["Disinfectant_Source"];
+            let specificRanges;
+            if (source === "Chloramine") {
+              specificRanges = parameterRanges["Chloramine"];
+            } else if (source === "Chlorine") {
+              specificRanges = parameterRanges["Chlorine"];
+            }
+
+            if (specificRanges && specificRanges.length >= 2) {
+              minRange = specificRanges[0];
+              maxRange = specificRanges[1];
+              // Ensure maxValue is at least the configured max (3rd element)
+              if (specificRanges.length >= 3 && specificRanges[2] > maxValue) {
+                maxValue = specificRanges[2];
+              }
+            } else {
+              // Optional: Log warning if source is unknown or ranges are missing
+              console.warn(
+                `Disinfectant source '${source}' not found in config or invalid range definition for participant ${participantId}. Using default ranges.`
+              );
+              // Keep the default [minRange, maxRange] assigned earlier for "Disinfectant"
+            }
+          }
+
           // Process one item at a time
           for (const item of [
             "Outdoor",
@@ -213,7 +243,17 @@ async function processRecords() {
                 minRange,
                 maxRange,
                 outputFilePath,
-                customBarConfig
+                customBarConfig,
+                participantId
+              );
+              console.log(
+                participantId,
+                parameter,
+                value,
+                maxValue,
+                minRange,
+                maxRange,
+                parameter_type
               );
 
               // Add a small delay between image generations
@@ -249,23 +289,6 @@ async function processRecords() {
   }
 } // End of processRecords
 
-// Add a timeout to the entire process
-const TIMEOUT_MINUTES = 15;
-const timeout = setTimeout(() => {
-  console.error(`Process timed out after ${TIMEOUT_MINUTES} minutes`);
-  if (browserInstance) {
-    browserInstance.close().catch(console.error);
-  }
-  process.exit(1);
-}, TIMEOUT_MINUTES * 60 * 1000);
-
-// Run the process with the timeout
-processRecords()
-  .catch((err) => console.error("Error processing records:", err))
-  .finally(() => {
-    clearTimeout(timeout);
-  });
-
 // Fix the HTML template issue - there was a missing opening < in the HTML tag
 async function generateImage(
   type,
@@ -274,7 +297,8 @@ async function generateImage(
   minRange,
   maxRange,
   outputFilePath,
-  customBarConfig = null
+  customBarConfig = null,
+  participantId = "unknown"
 ) {
   const browser = await getBrowser();
   let page = null;
@@ -357,6 +381,9 @@ async function generateImage(
           }
           body {
             padding: 0 14px;
+            overflow: hidden;
+            max-width: 341px;
+            position: relative;
           }
           #bar {
             position: relative;
@@ -487,13 +514,13 @@ async function generateImage(
         <div class="range-labels">
           <div class="range-node">
             <line></line>
-            <div id="minRange">0.2</div>
+            <div id="minRange">${minRange}</div>
           </div>
           <div class="range-label">Acceptable Range</div>
 
           <div class="range-node">
             <line></line>
-            <div id="maxRange">4</div>
+            <div id="maxRange">${maxRange}</div>
           </div>
         </div>
         </div>
@@ -569,11 +596,11 @@ async function generateImage(
 
     await page.setContent(pageContent);
 
-    await page.setViewport({ width: 341, height: 70, deviceScaleFactor: 0.9 });
+    await page.setViewport({ width: 340, height: 70, deviceScaleFactor: 0.9 });
     await page.waitForSelector("#bar", { timeout: 5000 });
 
     // Log the final rendered HTML for #bar only for type 0 parameters
-    if (type === 0) {
+    if (type === 1) {
       // Create debug folder if it doesn't exist
       const debugFolder = path.join(__dirname, "debug");
       if (!fs.existsSync(debugFolder)) {
@@ -583,7 +610,7 @@ async function generateImage(
       // Save the complete page content to an HTML file
       const debugFilePath = path.join(
         debugFolder,
-        `page_${path.basename(outputFilePath, ".png")}.html`
+        `${participantId}_${path.basename(outputFilePath, ".png")}.html`
       );
       fs.writeFileSync(debugFilePath, pageContent);
       console.log(`Complete HTML template saved to: ${debugFilePath}`);
@@ -605,3 +632,8 @@ async function generateImage(
     }
   }
 }
+
+// Run the process
+processRecords().catch((err) =>
+  console.error("Error processing records:", err)
+);

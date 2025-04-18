@@ -42,8 +42,8 @@ for (participant_id, date), group in grouped:
             # Combine parameters from both Out and AF samples with suffixes
             'Monochloramine_Out': out_sample['Monochloramine'].values[0],
             'Monochloramine_AF': af_sample['Monochloramine'].values[0],
-            'Chlorine_Out': out_sample['Chlorine'].values[0],
-            'Chlorine_AF': af_sample['Chlorine'].values[0],
+            'Chloramine_Out': out_sample['Chloramine'].values[0],
+            'Chloramine_AF': af_sample['Chloramine'].values[0],
             'Ammonia_Out': out_sample['Ammonia'].values[0],
             'Ammonia_AF': af_sample['Ammonia'].values[0],
             'Nitrate_Out': out_sample['Nitrate'].values[0],

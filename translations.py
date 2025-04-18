@@ -1,0 +1,82 @@
+# translations.py
+
+# Note: Keys MUST EXACTLY match the text content found in the rendered HTML nodes,
+# after stripping leading/trailing whitespace.
+SPANISH_TRANSLATIONS = {
+    # --- General --- 
+    'Report': 'Informe',
+    'Report example': 'Ejemplo de informe',
+    'Produced by WCWH': 'Producido por WCWH',
+    'Water Quality Report': 'Informe de Calidad del Agua',
+    'Discover the results of Whole Communities-Whole Health\'s latest water testing endeavors in your house and neighborhood. By prioritizing water quality, we foster a healthier environment and a more resilient community.': 'Descubra los resultados de las últimas pruebas de agua de Whole Communities-Whole Health en su casa y vecindario. Al priorizar la calidad del agua, fomentamos un medio ambiente más saludable y una comunidad más resiliente.',
+    'Water quality report': 'Informe de calidad del agua',
+    'Table Of Contents': 'Tabla De Contenidos',
+    'Clickable report': 'Informe interactivo',
+    'You can click on any links and catalogs in this report. They will take you to websites or other pages in the report.': 'Puede hacer clic en cualquier enlace y catálogo de este informe. Le llevarán a sitios web u otras páginas del informe.',
+    'Click here to watch our video guide. It will help you understand and use this report better.': 'Haga clic aquí para ver nuestra guía en video. Le ayudará a comprender y utilizar mejor este informe.',
+    'Return to table of contents': 'Volver a la tabla de contenidos',
+    
+    # --- TOC Headings ---
+    '1. Test Results Overview': '1. Resumen de los Resultados de las Pruebas',
+    'Your water quality': 'Calidad de su agua',
+    'Important note': 'Nota importante',
+    '2. Detailed Test Results': '2. Resultados Detallados de las Pruebas',
+    'Glossary': 'Glosario',
+    # 'WCWH results of ... measures': Needs special handling if the number changes dynamically
+    'Disinfectant': 'Desinfectante',
+    'Lead': 'Plomo',
+    'Nitrate': 'Nitrato',
+    'Nitrite': 'Nitrito',
+    'Ammonia': 'Amoníaco',
+    'Bacteria': 'Bacterias',
+    'Turbidity': 'Turbidez',
+    'pH': 'pH',
+    'Your water utility\'s annual report': 'Informe anual de su compañía de agua',
+    '3. Concerns and questions': '3. Inquietudes y preguntas',
+    'Stay aware of your water quality': 'Manténgase al tanto de la calidad de su agua',
+    'Temporary solutions': 'Soluciones temporales',
+    'Report your concern': 'Informe su inquietud',
+    '4. Learn About Your Report': '4. Aprenda Sobre Su Informe',
+    'The test is a spot check': 'La prueba es una verificación puntual',
+    'Distribution of WCWH water samples and their water utilities': 'Distribución de las muestras de agua de WCWH y sus compañías de agua',
+    'What does "water quality" mean?': '¿Qué significa "calidad del agua"?',
+    'What can affect the water quality in your home?': '¿Qué puede afectar la calidad del agua en su hogar?',
+    'Why is WCWH testing water quality?': '¿Por qué WCWH está analizando la calidad del agua?',
+
+    # --- Page 2 --- 
+    'Test Results Overview': 'Resumen de los Resultados de las Pruebas',
+    'WCWH Spot Test Results': 'Resultados de las Pruebas Puntuales de WCWH',
+    'Date of water sample:': 'Fecha de la muestra de agua:',
+    'In acceptable range': 'Dentro del rango aceptable',
+    'In agreement with your Utility Company Report': 'En concordancia con el Informe de su Compañía de Servicios Públicos',
+    'View your water utility\'s annual report': 'Ver el informe anual de su compañía de agua',
+    'Aligns with the WCWH average measurements in your area': 'Se alinea con las mediciones promedio de WCWH en su área',
+    'Meets the standards established by the Texas Commission on Environmental Quality.': 'Cumple con los estándares establecidos por la Comisión de Calidad Ambiental de Texas.',
+    'Since the tests we did were within the governmental standards': 'Dado que las pruebas que realizamos estaban dentro de los estándares gubernamentales',
+    'You don\'t need to take any action right now.': 'No necesita tomar ninguna medida en este momento.',
+    'Parameters\' snapshot': 'Resumen de parámetros',
+    # 'The WCWH test is based on ... parameters:': Needs special handling
+    'Disinfectant: Free chlorine OR Chloramine': 'Desinfectante: Cloro libre O Cloramina',
+    'Bacteria (E. Coli)': 'Bacterias (E. Coli)',
+    'In normal range': 'Dentro del rango normal',
+    'Out of normal range': 'Fuera del rango normal',
+    'No regulated standard': 'Sin estándar regulado',
+    'These parameters were not tested:': 'Estos parámetros no fueron probados:',
+    'Important Note': 'Nota Importante',
+    'This report does not show the complete picture of your water quality': 'Este informe no muestra el panorama completo de la calidad de su agua',
+    'The EPA has legal limits for over 90 contaminants. Whole Communities-Whole Health tests for {count} contaminants in drinking water because of time and cost.': 'La EPA tiene límites legales para más de 90 contaminantes. Whole Communities-Whole Health analiza {count} contaminantes en el agua potable debido al tiempo y al costo.',
+    'We encourage you to learn more information about the contaminants on:': 'Le recomendamos que obtenga más información sobre los contaminantes en:',
+    'Drinking Water Regulations by US EPA': 'Regulaciones de Agua Potable por la EPA de EE. UU.',
+    'Water quality is always changing': 'La calidad del agua cambia constantemente',
+    'These results show the water quality at the time we took your samples. Your water quality may change over time.': 'Estos resultados muestran la calidad del agua en el momento en que tomamos sus muestras. La calidad de su agua puede cambiar con el tiempo.',
+    'Detailed Test Results': 'Resultados Detallados de las Pruebas',
+    'Acceptable range is based on regulations from the Environmental Protection Agency (EPA) and the Texas Commission on Environmental Quality (TCEQ)': 'El rango aceptable se basa en las regulaciones de la Agencia de Protección Ambiental (EPA) y la Comisión de Calidad Ambiental de Texas (TCEQ)',
+    'Outdoor water quality measures are based on the samples that were collected outside your home and reflect the quality of the water that the water utility company provides to your home at the time the sample was taken.': 'Las mediciones de la calidad del agua exterior se basan en las muestras que se recolectaron fuera de su hogar y reflejan la calidad del agua que la compañía de servicios públicos de agua proporciona a su hogar en el momento en que se tomó la muestra.',
+    'Indoor water quality measures are based on additional samples from inside your home to compare the water from your indoor tap to the water provided by the water utility.': 'Las mediciones de la calidad del agua interior se basan en muestras adicionales tomadas dentro de su hogar para comparar el agua de su grifo interior con el agua proporcionada por la compañía de servicios públicos.',
+    'By examining both samples, we can better understand how water usage in your home, as well as your plumbing and filtration system (if any), impact your household\'s water quality.': 'Al examinar ambas muestras, podemos comprender mejor cómo el uso del agua en su hogar, así como su sistema de plomería y filtración (si lo hubiera), afectan la calidad del agua de su hogar.',
+    'Average community level measures are based on all samples taken by WCWH from the community, including more than 100 samples from a total of 33 homes from Bastrop County, Hays County, and Travis County.': 'Las mediciones del nivel promedio de la comunidad se basan en todas las muestras tomadas por WCWH de la comunidad, incluidas más de 100 muestras de un total de 33 hogares de los condados de Bastrop, Hays y Travis.',
+    'Met governmental standards refers to whether the parameters meet the standards(?) of the Texas Commission on Environmental Quality': 'Cumple con los estándares gubernamentales se refiere a si los parámetros cumplen con los estándares (?) de la Comisión de Calidad Ambiental de Texas',
+
+    # --- Add many more translations here ---
+
+} 

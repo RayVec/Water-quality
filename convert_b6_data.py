@@ -1,10 +1,29 @@
 import pandas as pd
 
+def convert_id_number_to_participant_id(number):
+    # Read the WCWH Participant.csv file
+    wcwh_df = pd.read_csv('WCWH Participant.csv')
+    
+    # Convert number to the format we're looking for (e.g., 88 -> '0088')
+    padded_number = str(number).zfill(4)
+    
+    # Look for any ID that contains this number
+    matching_ids = wcwh_df[wcwh_df['Participant ID'].str.contains(f'P{padded_number}[TBH]', regex=True)]
+    
+    if len(matching_ids) > 0:
+        return matching_ids['Participant ID'].iloc[0]
+    else:
+        return None
+
 # Read the Excel file
 df = pd.read_excel('B6 Data.xlsx')
 
 # Print column names to debug
 print("Original column names:", df.columns.tolist())
+
+# Convert Participant IDs before renaming columns
+df['Participant_ID'] = df['Participant_ID'].apply(lambda x: convert_id_number_to_participant_id(x) 
+                                                if pd.notnull(x) else x)
 
 # Rename columns to match Sample-Data.csv format
 column_mapping = {
@@ -15,7 +34,7 @@ column_mapping = {
     'Disinfectant_type': 'Disinfectant (1 = Mono, 2 = Chlorine)',
     'Flush_type': 'Sample Type',
     # Removed the Filter_softener_none mapping
-    'Monochloramine': 'Monochloramine',
+    'Chloramine': 'Chloramine',
     'Chlorine': 'Chlorine',
     'Ammonia': 'Ammonia', 
     'Nitrate': 'Nitrate',

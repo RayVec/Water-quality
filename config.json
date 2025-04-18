@@ -1,7 +1,6 @@
 {
   "parameterRanges": {
-    "Disinfectant": [0.2, 4, 6],
-    "Monochloramine": [0.2, 4, 6],
+    "Chloramine": [0.5, 4, 6],
     "Chlorine": [0.2, 4, 6],
     "Lead": [0, 15, 30],
     "Nitrate": [0, 10, 15],
@@ -14,7 +13,7 @@
   },
   "parameterTypes": {
     "Disinfectant": 1,
-    "Monochloramine": 1,
+    "Chloramine": 1,
     "Chlorine": 1,
     "Lead": 1,
     "Nitrate": 1,
@@ -28,8 +27,7 @@
   },
   "parameters": {
     "all": [
-      "Monochloramine",
-      "Chlorine",
+      "Disinfectant",
       "Ammonia",
       "Nitrate",
       "Nitrite",

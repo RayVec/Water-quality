@@ -3,8 +3,21 @@ import csv
 
 # Define standards for parameters
 standards = {
-    'Disinfectant': (0.2, 4),
-    'Monochloramine': (0.2, 4),
+    'Disinfectant': (0.2, 4),  # Default standard, will be overridden based on type
+    'Chloramine': (0.5, 4),    # Chloramine has a higher minimum (0.5)
+    'Chlorine': (0.2, 4),      # Chlorine has a lower minimum (0.2)
+    'Lead': (0, 15),
+    'Nitrate': (0, 10),
+    'Nitrite': (0, 1),
+    'Turbidity': (0, 1),
+    'pH': (6.5, 9.5),
+    'Bacteria': 'No'
+}
+
+# Define parameter ranges
+parameter_ranges = {
+    'Chloramine': (0.5, 4),    # Updated to match standards
+    'Disinfectant': (0.2, 4),  # Default standard
     'Chlorine': (0.2, 4),
     'Lead': (0, 15),
     'Nitrate': (0, 10),
@@ -41,30 +54,42 @@ for _, row in df.iterrows():
     
     # Special handling for Disinfectant based on Disinfectant_type
     disinfectant_type = row['Disinfectant (1 = Mono, 2 = Chlorine)']
-    if disinfectant_type == 1:  # Monochloramine
-        disinfectant_value = row['Monochloramine']
-        disinfectant_name = 'Monochloramine'
+    if disinfectant_type == 1:  # Chloramine
+        disinfectant_value = row['Chloramine']
+        disinfectant_name = 'Chloramine'
+        # Use Chloramine standard for evaluation
+        if not is_within_standard(disinfectant_value, 'Chloramine'):
+            standard_str = f"{standards['Chloramine'][0]} - {standards['Chloramine'][1]}"
+            
+            csv_rows.append({
+                'Participant ID': participant_id,
+                'Sample ID': sample_id,
+                'Date': date,
+                'Water System': water_system,
+                'Sample Type': sample_type,
+                'Parameter': disinfectant_name,
+                'Value': disinfectant_value,
+                'Standard Range': standard_str,
+                'Status': 'Out of Range'
+            })
     else:  # Chlorine
         disinfectant_value = row['Chlorine']
         disinfectant_name = 'Chlorine'
-    
-    if not is_within_standard(disinfectant_value, 'Disinfectant'):
-        if isinstance(standards['Disinfectant'], tuple):
-            standard_str = f"{standards['Disinfectant'][0]} - {standards['Disinfectant'][1]}"
-        else:
-            standard_str = standards['Disinfectant']
+        # Use Chlorine standard for evaluation
+        if not is_within_standard(disinfectant_value, 'Chlorine'):
+            standard_str = f"{standards['Chlorine'][0]} - {standards['Chlorine'][1]}"
             
-        csv_rows.append({
-            'Participant ID': participant_id,
-            'Sample ID': sample_id,
-            'Date': date,
-            'Water System': water_system,
-            'Sample Type': sample_type,
-            'Parameter': disinfectant_name,
-            'Value': disinfectant_value,
-            'Standard Range': standard_str,
-            'Status': 'Out of Range'
-        })
+            csv_rows.append({
+                'Participant ID': participant_id,
+                'Sample ID': sample_id,
+                'Date': date,
+                'Water System': water_system,
+                'Sample Type': sample_type,
+                'Parameter': disinfectant_name,
+                'Value': disinfectant_value,
+                'Standard Range': standard_str,
+                'Status': 'Out of Range'
+            })
     
     # Check other parameters
     for param in ['Lead', 'Nitrate', 'Nitrite', 'Turbidity', 'pH']:
