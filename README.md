@@ -7,6 +7,22 @@ Given a batch of lab results in an Excel workbook, the pipeline produces one PDF
 participant/sample-date containing their measured values, how those values compare to
 regulatory limits, and how they compare to the community average.
 
+## PDF design goals
+
+These reports are designed primarily for viewing on phones rather than for printing on
+standard Letter or A4 paper. The PDF behaves like a downloadable, linkable mobile report:
+
+- The page width is approximately 377 CSS pixels to match a comfortable mobile reading width.
+- Each report section is rendered as its own PDF page, and each page's height adapts to its
+  content so short sections do not leave large areas of empty space.
+- The table of contents and internal links remain usable inside the downloaded PDF.
+- PDF remains the distribution format so a report can be downloaded, shared, and archived.
+
+This variable-height page model is the main reason the pipeline uses **WeasyPrint**. Browser
+PDF printing produces a fixed page size shared by every page, while WeasyPrint's named-page
+support allows the report to assign a different height to each section without giving up PDF
+navigation or the phone-friendly width.
+
 ---
 
 ## Pipeline

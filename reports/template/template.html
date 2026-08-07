@@ -1,3 +1,168 @@
+{#-
+  ============================================================================
+  参数区块 macro
+  ----------------------------------------------------------------------------
+  page4~page11 这 8 页原本是同一段 HTML 复制了 8 遍（约 970 行），差异只有
+  参数名、图标、单位、图例样式和两段说明文字。这里抽成 macro，改一处即可。
+
+  每页的 <article> 外壳（页码、.chapter / .section 包裹层）仍保留在原位，
+  因为各页的包裹层本来就不一致（见下表），改动它们会影响排版。
+
+      page4  Disinfectant  chapter > section > section
+      page5  Lead          chapter
+      page6  Nitrate       chapter > section
+      page7  Nitrite       (无包裹)
+      page8  Ammonia       chapter > section
+      page9  Bacteria      chapter > section     ← 二元指标，用 parameter_box_binary
+      page10 Turbidity     section
+      page11 pH            chapter > section
+
+  用法见各页调用处。
+  ============================================================================
+-#}
+
+{#- 单条“指标名 + 刻度条图片”行 -#}
+{% macro bar_metric(label, participant_id, date, image) -%}
+<div class="parameter-metric">
+  <div class="parameter-metric-name">{{ label }}</div>
+  <div class="parameter-bar">
+    <img src="../../images/output/{{ participant_id }}/{{ date }}/{{ image }}.png" />
+  </div>
+</div>
+{%- endmacro %}
+
+{#- 单条“指标名 + 文字值”行（Bacteria 用） -#}
+{% macro binary_metric(label, value) -%}
+<div class="parameter-metric-binary">
+  <div class="parameter-metric-name">{{ label }}</div>
+  <div class="parameter-metric-value">{{ value }}</div>
+</div>
+{%- endmacro %}
+
+{#- 实验室备注段落，值为 none 时整段不输出 -#}
+{% macro eval_note(text) -%}
+{% if text is not none %}
+<div style="padding-left: 12px;">
+  <p>{{ text }}</p>
+</div>
+{% endif %}
+{%- endmacro %}
+
+{#- 图例：regulated = 绿/黄双条，unregulated = 无标准提示 -#}
+{% macro legend(kind) -%}
+{% if kind == 'regulated' %}
+<div style="display: flex; align-items: center; margin-top: 12px">
+  <div class="bar-acceptable-range-sample"></div>
+  <span>Acceptable range</span>
+</div>
+<div style="display: flex; align-items: center; margin-top: 12px">
+  <div class="bar-out-of-acceptable-range-sample"></div>
+  <span>Out of acceptable range</span>
+</div>
+{% elif kind == 'unregulated' %}
+<div style="display: flex; align-items: center; margin-top: 12px">
+  <div class="bar-no-standard-sample"></div>
+  <span>There is no regulated standard for this parameter</span>
+</div>
+{% endif %}
+{%- endmacro %}
+
+{#-
+  带刻度条的参数区块（Disinfectant / Lead / Nitrate / Nitrite / Ammonia /
+  Turbidity / pH 共 7 个）。
+
+  record            整条记录，用于按 "<param>_Outdoor_Evaluation" 这类字段名动态取值
+  param             字段前缀，同时也是图片文件名前缀，如 'Lead'
+  section_id        锚点 id，需与目录里的 href 对应，如 'section2-2-3'
+  icon              icons/ 下的文件名
+  title             标题文字，默认与 param 相同
+  unit              单位后缀，如 ' (mg/L)'；pH 无单位则留空
+  legend_kind       'regulated' 或 'unregulated'
+  guard_outdoor     true 时，Outdoor 整段在该参数无室外值时不输出（仅 Lead 如此）
+  title_span        true 时标题套一层限宽 span（仅 Disinfectant 如此）
+  filtered_eval_inside
+                    过滤水备注是否放在“有过滤水”判断内部。Lead 原本放在外面，
+                    即使没有过滤样本也会显示备注 —— 保留原行为，勿随手“修正”。
+-#}
+{% macro parameter_box(record, param, section_id, icon, title, unit, legend_kind,
+                       source_text, care_text,
+                       guard_outdoor=false, title_span=false,
+                       filtered_eval_inside=true) -%}
+<div id="{{ section_id }}" class="box-regular">
+  <h3>
+    <img src="../../icons/{{ icon }}" />
+    {% if title_span %}<span style="max-width: 259px">{{ title }}</span>{% else %}{{ title }}{% endif %}
+  </h3>
+  {{ legend(legend_kind) }}
+  <div class="paramter-line"></div>
+
+  {% if not guard_outdoor or record[param ~ '_Outdoor'] is not none %}
+  <h4>Outdoor</h4>
+  {{ bar_metric('Your level' ~ unit, record['Participant_ID'], record['date'], param ~ '_Outdoor') }}
+  {{ eval_note(record[param ~ '_Outdoor_Evaluation']) }}
+  {{ bar_metric('Average community level' ~ unit, record['Participant_ID'], record['date'], param ~ '_Outdoor_Average') }}
+  <div class="paramter-line"></div>
+  {% endif %}
+
+  <h4>Indoor</h4>
+  {{ bar_metric('Your kitchen tap' ~ unit, record['Participant_ID'], record['date'], param ~ '_FF') }}
+  {{ eval_note(record[param ~ '_FF_Evaluation']) }}
+  {{ bar_metric('Average community level for kitchen tap' ~ unit, record['Participant_ID'], record['date'], param ~ '_FF_Average') }}
+
+  {% if record[param ~ '_Filtered_Available'] %}
+  {{ bar_metric('Your filtered drinking water' ~ unit, record['Participant_ID'], record['date'], param ~ '_Filtered') }}
+  {% if filtered_eval_inside %}{{ eval_note(record[param ~ '_Filtered_Evaluation']) }}{% endif %}
+  {% endif %}
+  {% if not filtered_eval_inside %}{{ eval_note(record[param ~ '_Filtered_Evaluation']) }}{% endif %}
+
+  <div class="paramter-line"></div>
+  <h4>Potential source and meaning</h4>
+  <p>{{ source_text }}</p>
+  <h4>Why you should care</h4>
+  <p>{{ care_text }}</p>
+</div>
+{%- endmacro %}
+
+{#-
+  二元参数区块（目前只有 Bacteria）：不画刻度条，直接给“检出 / 未检出”和
+  “是否达标”两栏文字。
+-#}
+{% macro parameter_box_binary(record, param, section_id, icon, title,
+                              source_text, care_text) -%}
+{% set undetected = 'Not detected' %}
+<div id="{{ section_id }}" class="box-regular">
+  <h3>
+    <img src="../../icons/{{ icon }}" />
+    {{ title }}
+  </h3>
+  {{ binary_metric('Acceptable range', 0) }}
+  <div class="paramter-line"></div>
+
+  <h4>Outdoor</h4>
+  {{ binary_metric('Your level', undetected if record[param ~ '_Outdoor'] in (none, 0) else record[param ~ '_Outdoor']) }}
+  {{ eval_note(record[param ~ '_Outdoor_Evaluation']) }}
+  {{ binary_metric('Met governmental standards?', 'Yes' if record[param ~ '_Outdoor_Standard'] == 1 else 'No') }}
+  {{ binary_metric('Average community level', undetected if record[param ~ '_Outdoor_Average'] in (none, 0) else record[param ~ '_Outdoor_Average']) }}
+  <div class="paramter-line"></div>
+
+  <h4>Indoor</h4>
+  {{ binary_metric('Your kitchen tap', undetected if record[param ~ '_FF'] in (none, 0) else record[param ~ '_FF']) }}
+  {{ eval_note(record[param ~ '_FF_Evaluation']) }}
+  {{ binary_metric('Met governmental standards?', 'Yes' if record[param ~ '_FF_Standard'] == 1 else 'No') }}
+  {{ binary_metric('Average community levels for kitchen tap', undetected if record[param ~ '_FF_Average'] in (none, 0) else record[param ~ '_FF_Average']) }}
+
+  {% if record[param ~ '_Filtered_Available'] %}
+  {{ binary_metric('Filtered drinking water', undetected if record[param ~ '_Filtered'] in (none, 0) else record[param ~ '_Filtered']) }}
+  {{ eval_note(record[param ~ '_Filtered_Evaluation']) }}
+  {% endif %}
+
+  <div class="paramter-line"></div>
+  <h4>Potential source and meaning</h4>
+  <p>{{ source_text }}</p>
+  <h4>Why you should care</h4>
+  <p>{{ care_text }}</p>
+</div>
+{%- endmacro %}
 <html>
   <head>
     <meta charset="utf-8" />
@@ -590,104 +755,15 @@
           </div>
           <div class="section">
             {% if 'Disinfectant' in display_parameters %}
-          <div id="section2-2-2" class="box-regular">
-            <h3>
-              <img src="../../icons/lead.png" />
-              <span style="max-width: 259px"
-                >
-                {% if Disinfectant_Source == 'Chlorine' %}
-                    Free chlorine
-                    {% else %}
-                    Chloramine
-                    {% endif %}
-                </span
-              >
-            </h3>
-            <div style="display: flex; align-items: center; margin-top: 12px">
-              <div class="bar-acceptable-range-sample"></div>
-              <span>Acceptable range</span>
-            </div>
-            <div style="display: flex; align-items: center; margin-top: 12px">
-              <div class="bar-out-of-acceptable-range-sample"></div>
-              <span>Out of acceptable range</span>
-            </div>
-            <div class="paramter-line"></div>
-            <h4>Outdoor</h4>
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">Your level (mg/L)</div>
-              <div class="parameter-bar">
-                <img
-                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_Outdoor.png"
-                />
-              </div>
-            </div>
-            {% if Disinfectant_Outdoor_Evaluation is not none %}
-            <div style="padding-left: 12px;">
-              <p>{{ Disinfectant_Outdoor_Evaluation }}</p>
-            </div>
+            {{ parameter_box(
+                 record, 'Disinfectant', 'section2-2-2', 'lead.png',
+                 title='Free chlorine' if Disinfectant_Source == 'Chlorine' else 'Chloramine',
+                 unit=' (mg/L)',
+                 legend_kind='regulated',
+                 title_span=true,
+                 source_text='Disinfectant is added at the treatment plant to control the growth of bacteria and viruses in the water. It helps ensure that the water reaching your house is safe to drink. Low levels of disinfectant should be present in the water to maintain its safety.',
+                 care_text='A certain amount of disinfectant is needed when the water enters your home. This helps make sure no harmful bacteria grows between the treatment plant and your home.') }}
             {% endif %}
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">Average community level (mg/L)</div>
-              <div class="parameter-bar">
-                <img
-                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_Outdoor_Average.png"
-                />
-              </div>
-            </div>
-            <div class="paramter-line"></div>
-            <h4>Indoor</h4>
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">Your kitchen tap (mg/L)</div>
-              <div class="parameter-bar">
-                <img
-                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_FF.png"
-                />
-              </div>
-            </div>
-            {% if Disinfectant_FF_Evaluation is not none %}
-            <div style="padding-left: 12px;">
-              <p>{{ Disinfectant_FF_Evaluation }}</p>
-            </div>
-            {% endif %}
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">
-                Average community level for kitchen tap (mg/L)
-              </div>
-              <div class="parameter-bar">
-                <img
-                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_FF_Average.png"
-                />
-              </div>
-            </div>
-           
-            {% if Disinfectant_Filtered_Available %}
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">
-                Your filtered drinking water (mg/L)
-              </div>
-              <div class="parameter-bar">
-                <img
-                   src="../../images/output/{{ Participant_ID }}/{{ date }}/Disinfectant_Filtered.png"
-                />
-              </div>
-            </div>
-            {% if Disinfectant_Filtered_Evaluation is not none %}
-            <div style="padding-left: 12px;">
-              <p>{{ Disinfectant_Filtered_Evaluation }}</p>
-            </div>
-            {% endif %}
-            {% endif %}
-            <div class="paramter-line"></div>
-            <h4>Potential source and meaning</h4>
-            <p>
-              Disinfectant is added at the treatment plant to control the growth of bacteria and viruses in the water. It helps ensure that the water reaching your house is safe to drink. Low levels of disinfectant should be present in the water to maintain its safety.
-            </p>
-            <h4>Why you should care</h4>
-            <p>
-              A certain amount of disinfectant is needed when the water enters your home. This helps make sure no harmful bacteria grows between the treatment plant and your home.
-            </p>
-          </div>
-          {% endif %}
           </div>
         </div>
       </div>
@@ -717,104 +793,15 @@
       <div class="content">
         <div class="chapter">
           {% if 'Lead' in display_parameters %}
-            <div id="section2-2-3" class="box-regular">
-              <h3>
-                <img src="../../icons/lead-1.png" />
-                Lead
-              </h3>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-acceptable-range-sample"></div>
-                <span>Acceptable range</span>
-              </div>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-out-of-acceptable-range-sample"></div>
-                <span>Out of acceptable range</span>
-              </div>
-              <!-- <div style="display: flex; align-items: center; margin-top: 12px">
-                <img
-                  src="../../icons/certification.svg"
-                  style="margin-right: 8px"
-                />
-                <span>Lead test was done in a certified lab</span>
-              </div> -->
-              <div class="paramter-line"></div>
-              
-              {% if Lead_Outdoor is not none %}
-              <h4>Outdoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your level (μg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Lead_Outdoor.png"
-                  />
-                </div>
-              </div>
-              {% if Lead_Outdoor_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Lead_Outdoor_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Average community level (μg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Lead_Outdoor_Average.png"
-                  />
-                </div>
-              </div>
-              <div class="paramter-line"></div>
-              {% endif %}
-              <h4>Indoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your kitchen tap (μg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Lead_FF.png"
-                  />
-                </div>
-              </div>
-              {% if Lead_FF_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Lead_FF_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Average community level for kitchen tap (μg/L)
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Lead_FF_Average.png"
-                  />
-                </div>
-              </div>
-              {% if Lead_Filtered_Available %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Your filtered drinking water (μg/L)
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Lead_Filtered.png"
-                  />
-                </div>
-              </div>
-              {% endif %}
-              {% if Lead_Filtered_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Lead_Filtered_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="paramter-line"></div>
-              <h4>Potential source and meaning</h4>
-              <p>
-                Some plumbing systems, like pipes and fixtures, are made of lead. When these corrode, they can increase the levels of lead in drinking water.
-              </p>
-              <h4>Why you should care</h4>
-              <p>
-                High lead levels can cause harmful health effects, especially for pregnant women and young children.
-              </p>
-            </div>
+            {{ parameter_box(
+                 record, 'Lead', 'section2-2-3', 'lead-1.png',
+                 title='Lead',
+                 unit=' (μg/L)',
+                 legend_kind='regulated',
+                 guard_outdoor=true,
+                 filtered_eval_inside=false,
+                 source_text='Some plumbing systems, like pipes and fixtures, are made of lead. When these corrode, they can increase the levels of lead in drinking water.',
+                 care_text='High lead levels can cause harmful health effects, especially for pregnant women and young children.') }}
             {% endif %}
           
         </div>
@@ -846,93 +833,13 @@
         <div class="chapter">
           <div class="section">
             {% if 'Nitrate' in display_parameters %}
-            <div id="section2-2-4" class="box-regular">
-              <h3>
-                <img src="../../icons/Nitrate.png" />
-                Nitrate
-              </h3>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-acceptable-range-sample"></div>
-                <span>Acceptable range</span>
-              </div>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-out-of-acceptable-range-sample"></div>
-                <span>Out of acceptable range</span>
-              </div>
-    
-              <div class="paramter-line"></div>
-              <h4>Outdoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your level (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrate_Outdoor.png"
-                  />
-                </div>
-              </div>
-              {% if Nitrate_Outdoor_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Nitrate_Outdoor_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Average community level (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrate_Outdoor_Average.png"
-                  />
-                </div>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Indoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your kitchen tap (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrate_FF.png"
-                  />
-                </div>
-              </div>
-              {% if Nitrate_FF_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Nitrate_FF_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Average community level for kitchen tap (mg/L)
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrate_FF_Average.png"
-                  />
-                </div>
-              </div>
-              {% if Nitrate_Filtered_Available %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Your filtered drinking water (mg/L)
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrate_Filtered.png"
-                  />
-                </div>
-              </div>
-              {% if Nitrate_Filtered_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Nitrate_Filtered_Evaluation }}</p>
-              </div>
-              {% endif %}
-              {% endif %}
-              <div class="paramter-line"></div>
-              <h4>Potential source and meaning</h4>
-              <p>
-                Runoff from fertilizer use; leaching from septic tanks, sewage.
-              </p>
-              <h4>Why you should care</h4>
-              <p>High levels of these substances can harm your health.</p>
-            </div>
+            {{ parameter_box(
+                 record, 'Nitrate', 'section2-2-4', 'Nitrate.png',
+                 title='Nitrate',
+                 unit=' (mg/L)',
+                 legend_kind='regulated',
+                 source_text='Runoff from fertilizer use; leaching from septic tanks, sewage.',
+                 care_text='High levels of these substances can harm your health.') }}
             {% endif %}
 
           </div>
@@ -964,93 +871,13 @@
       </div>
       <div class="content">
         {% if 'Nitrite' in display_parameters %}
-            <div id="section2-2-5" class="box-regular">
-              <h3>
-                <img src="../../icons/Nitrite.png" />
-                Nitrite
-              </h3>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-acceptable-range-sample"></div>
-                <span>Acceptable range</span>
-              </div>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-out-of-acceptable-range-sample"></div>
-                <span>Out of acceptable range</span>
-              </div>
-
-              <div class="paramter-line"></div>
-              <h4>Outdoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your level (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrite_Outdoor.png"
-                  />
-                </div>
-              </div>
-              {% if Nitrite_Outdoor_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Nitrite_Outdoor_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Average community level (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrite_Outdoor_Average.png"
-                  />
-                </div>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Indoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your kitchen tap (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrite_FF.png"
-                  />
-                </div>
-              </div>
-              {% if Nitrite_FF_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Nitrite_FF_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Average community level for kitchen tap (mg/L)
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrite_FF_Average.png"
-                  />
-                </div>
-              </div>
-              {% if Nitrite_Filtered_Available %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Your filtered drinking water (mg/L)
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Nitrite_Filtered.png"
-                  />
-                </div>
-                </div>
-              {% if Nitrite_Filtered_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Nitrite_Filtered_Evaluation }}</p>
-              </div>
-              {% endif %}
-              {% endif %}
-              <div class="paramter-line"></div>
-              <h4>Potential source and meaning</h4>
-              <p>
-                Runoff from fertilizer use; leaching from septic tanks, sewage.
-              </p>
-              <h4>Why you should care</h4>
-              <p>High levels of these substances can harm your health.</p>
-            </div>
+            {{ parameter_box(
+                 record, 'Nitrite', 'section2-2-5', 'Nitrite.png',
+                 title='Nitrite',
+                 unit=' (mg/L)',
+                 legend_kind='regulated',
+                 source_text='Runoff from fertilizer use; leaching from septic tanks, sewage.',
+                 care_text='High levels of these substances can harm your health.') }}
             {% endif %}
       </div>
       <div class="header">
@@ -1078,89 +905,14 @@
       </div>
       <div class="content">
         <div class="chapter">
-          <div class="section"> {% if 'Ammonia' in display_parameters %}  
-            <div id="section2-2-6" class="box-regular">
-              <h3>
-                <img src="../../icons/Ammonia.png" />
-                Ammonia
-              </h3>
-              <div style="display: flex; align-items: center; margin-top: 12px">
-                <div class="bar-no-standard-sample"></div>
-                <span>There is no regulated standard for this parameter</span>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Outdoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your level (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Ammonia_Outdoor.png"
-                  />
-                </div>
-              </div>
-              {% if Ammonia_Outdoor_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Ammonia_Outdoor_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Average community level (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Ammonia_Outdoor_Average.png"
-                  />
-                </div>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Indoor</h4>
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">Your kitchen tap (mg/L)</div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Ammonia_FF.png"
-                  />
-                </div>
-              </div>
-              {% if Ammonia_FF_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Ammonia_FF_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Average community level for kitchen tap (mg/L)
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Ammonia_FF_Average.png"
-                  />
-                </div>
-              </div>
-              {% if Ammonia_Filtered_Available %}
-              <div class="parameter-metric">
-                <div class="parameter-metric-name">
-                  Your filtered drinking water (mg/L)
-                </div>
-                <div class="parameter-bar">
-                  <img
-                    src="../../images/output/{{ Participant_ID }}/{{ date }}/Ammonia_Filtered.png"
-                  />
-                </div>
-              </div>
-              {% if Ammonia_Filtered_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Ammonia_Filtered_Evaluation }}</p>
-              </div>
-              {% endif %}
-              {% endif %}
-              <div class="paramter-line"></div>
-              <h4>Potential source and meaning</h4>
-              <p>
-                Runoff from fertilizer use; leaching from septic tanks, sewage.
-              </p>
-              <h4>Why you should care</h4>
-              <p>High levels of these substances can harm your health.</p>
-            </div>
+          <div class="section"> {% if 'Ammonia' in display_parameters %}
+            {{ parameter_box(
+                 record, 'Ammonia', 'section2-2-6', 'Ammonia.png',
+                 title='Ammonia',
+                 unit=' (mg/L)',
+                 legend_kind='unregulated',
+                 source_text='Runoff from fertilizer use; leaching from septic tanks, sewage.',
+                 care_text='High levels of these substances can harm your health.') }}
             {% endif %}
           </div>
          
@@ -1193,78 +945,11 @@
       <div class="content">
         <div class="chapter">
           <div class="section">{% if 'Bacteria' in display_parameters %}
-            <div id="section2-2-7" class="box-regular">
-              <h3>
-                <img src="../../icons/Bacteria.png" />
-                Bacteria (E. Coli)
-              </h3>
-              <div class="parameter-metric-binary">
-                <div class="parameter-metric-name">Acceptable range</div>
-                <div class="parameter-metric-value">0</div>
-              </div>
-              <div class="paramter-line"></div>
-              <h4>Outdoor</h4>
-              <div class="parameter-metric-binary">
-                <div class="parameter-metric-name">Your level</div>
-                <div class="parameter-metric-value">{% if Bacteria_Outdoor is none or Bacteria_Outdoor == 0 %}Not detected{% else %}{{ Bacteria_Outdoor }}{% endif %}</div>
-              </div>
-              {% if Bacteria_Outdoor_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Bacteria_Outdoor_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric-binary">
-                <div class="parameter-metric-name">Met governmental standards?</div>
-                <div class="parameter-metric-value">{% if Bacteria_Outdoor_Standard == 1 %}Yes{% else %}No{% endif %}</div>
-              </div>
-              <div class="parameter-metric-binary">
-                <div class="parameter-metric-name">Average community level</div>
-                <div class="parameter-metric-value">{% if Bacteria_Outdoor_Average is none or Bacteria_Outdoor_Average == 0 %}Not detected{% else %}{{ Bacteria_Outdoor_Average }}{% endif %}</div>
-              </div>
-  
-              <div class="paramter-line"></div>
-              <h4>Indoor</h4>
-              <div class="parameter-metric-binary">
-                <div class="parameter-metric-name">Your kitchen tap</div>
-                <div class="parameter-metric-value">{% if Bacteria_FF is none or Bacteria_FF == 0 %}Not detected{% else %}{{ Bacteria_FF }}{% endif %}</div>
-              </div>
-              {% if Bacteria_FF_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Bacteria_FF_Evaluation }}</p>
-              </div>
-              {% endif %}
-              <div class="parameter-metric-binary">
-                <div class="parameter-metric-name">
-                  Met governmental standards?
-                </div>
-                <div class="parameter-metric-value">{% if Bacteria_FF_Standard == 1 %}Yes{% else %}No{% endif %}</div>
-              </div>
-              <div class="parameter-metric-binary">
-                <div class="parameter-metric-name">
-                  Average community levels for kitchen tap
-                </div>
-                <div class="parameter-metric-value">{% if Bacteria_FF_Average is none or Bacteria_FF_Average == 0 %}Not detected{% else %}{{ Bacteria_FF_Average }}{% endif %}</div>
-              </div>
-              {% if Bacteria_Filtered_Available %}
-              <div class="parameter-metric-binary">
-                <div class="parameter-metric-name">Filtered drinking water</div>
-                <div class="parameter-metric-value">{% if Bacteria_Filtered is none or Bacteria_Filtered == 0 %}Not detected{% else %}{{ Bacteria_Filtered }}{% endif %}</div>
-              </div>
-              {% if Bacteria_Filtered_Evaluation is not none %}
-              <div style="padding-left: 12px;">
-                <p>{{ Bacteria_Filtered_Evaluation }}</p>
-              </div>
-              {% endif %}
-              {% endif %}
-  
-              <div class="paramter-line"></div>
-              <h4>Potential source and meaning</h4>
-              <p>
-                E. coli is a sign that there might be fecal contamination. This means there could be waste or sewage in the water, which can be dangerous for your health.
-              </p>
-              <h4>Why you should care</h4>
-              <p>Presence of E. coli can cause sickness.</p>
-            </div>
+            {{ parameter_box_binary(
+                 record, 'Bacteria', 'section2-2-7', 'Bacteria.png',
+                 title='Bacteria (E. Coli)',
+                 source_text='E. coli is a sign that there might be fecal contamination. This means there could be waste or sewage in the water, which can be dangerous for your health.',
+                 care_text='Presence of E. coli can cause sickness.') }}
             {% endif %}
           </div>
           
@@ -1296,95 +981,13 @@
       <div class="content">
         <div class="section">
           {% if 'Turbidity' in display_parameters %}
-          <div id="section2-2-8" class="box-regular">
-            <h3>
-              <img src="../../icons/Turbidity.png" />
-              Turbidity
-            </h3>
-            <div style="display: flex; align-items: center; margin-top: 12px">
-              <div class="bar-acceptable-range-sample"></div>
-              <span>Acceptable range</span>
-            </div>
-            <div style="display: flex; align-items: center; margin-top: 12px">
-              <div class="bar-out-of-acceptable-range-sample"></div>
-              <span>Out of acceptable range</span>
-            </div>
-
-            <div class="paramter-line"></div>
-            <h4>Outdoor</h4>
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">Your level (NTU)</div>
-              <div class="parameter-bar">
-                <img
-                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Turbidity_Outdoor.png"
-                />
-              </div>
-            </div>
-            {% if Turbidity_Outdoor_Evaluation is not none %}
-            <div style="padding-left: 12px;">
-              <p>{{ Turbidity_Outdoor_Evaluation }}</p>
-            </div>
-            {% endif %}
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">Average community level (NTU)</div>
-              <div class="parameter-bar">
-                <img
-                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Turbidity_Outdoor_Average.png"
-                />
-              </div>
-            </div>
-            <div class="paramter-line"></div>
-            <h4>Indoor</h4>
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">Your kitchen tap (NTU)</div>
-              <div class="parameter-bar">
-                <img
-                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Turbidity_FF.png"
-                />
-              </div>
-            </div>
-            {% if Turbidity_FF_Evaluation is not none %}
-            <div style="padding-left: 12px;">
-              <p>{{ Turbidity_FF_Evaluation }}</p>
-            </div>
-            {% endif %}
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">
-                Average community level for kitchen tap (NTU)
-              </div>
-              <div class="parameter-bar">
-                <img
-                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Turbidity_FF_Average.png"
-                />
-              </div>
-            </div>
-            {% if Turbidity_Filtered_Available %}
-            <div class="parameter-metric">
-              <div class="parameter-metric-name">
-                Your filtered drinking water (NTU)
-              </div>
-              <div class="parameter-bar">
-                <img
-                  src="../../images/output/{{ Participant_ID }}/{{ date }}/Turbidity_Filtered.png"
-                />
-              </div>
-            </div>
-            {% if Turbidity_Filtered_Evaluation is not none %}
-            <div style="padding-left: 12px;">
-              <p>{{ Turbidity_Filtered_Evaluation }}</p>
-            </div>
-            {% endif %}
-            {% endif %}
-            <div class="paramter-line"></div>
-            <h4>Potential source and meaning</h4>
-            <p>
-              Turbidity refers to the clarity of water and the presence of particles in it. It measures how clear or cloudy the water appears.
-            </p>
-            <h4>Why you should care</h4>
-            <p>
-              High turbidity will give water a cloudy appearance. This does not mean the water is unsafe necessarily, but could indicate the water has become contaminated.
-            </p>
-          </div>
+          {{ parameter_box(
+               record, 'Turbidity', 'section2-2-8', 'Turbidity.png',
+               title='Turbidity',
+               unit=' (NTU)',
+               legend_kind='regulated',
+               source_text='Turbidity refers to the clarity of water and the presence of particles in it. It measures how clear or cloudy the water appears.',
+               care_text='High turbidity will give water a cloudy appearance. This does not mean the water is unsafe necessarily, but could indicate the water has become contaminated.') }}
           {% endif %}
           
         </div>
@@ -1415,91 +1018,13 @@
       <div class="content">
         <div class="chapter"><div class="section">
           {% if 'pH' in display_parameters %}
-          <div id="section2-2-9" class="box-regular">
-                <h3>
-                  <img src="../../icons/pH.png" />
-                  pH
-                </h3>
-                <div style="display: flex; align-items: center; margin-top: 12px">
-                  <div class="bar-no-standard-sample"></div>
-                  <span>There is no regulated standard for this parameter</span>
-                </div>
-  
-                <div class="paramter-line"></div>
-                <h4>Outdoor</h4>
-                <div class="parameter-metric">
-                  <div class="parameter-metric-name">Your level</div>
-                  <div class="parameter-bar">
-                    <img
-                      src="../../images/output/{{ Participant_ID }}/{{ date }}/pH_Outdoor.png"
-                    />
-                  </div>
-                </div>
-                {% if pH_Outdoor_Evaluation is not none %}
-                <div style="padding-left: 12px;">
-                  <p>{{ pH_Outdoor_Evaluation }}</p>
-                </div>
-                {% endif %}
-                <div class="parameter-metric">
-                  <div class="parameter-metric-name">Average community level</div>
-                  <div class="parameter-bar">
-                    <img
-                      src="../../images/output/{{ Participant_ID }}/{{ date }}/pH_Outdoor_Average.png"
-                    />
-                  </div>
-                </div>
-                <div class="paramter-line"></div>
-                <h4>Indoor</h4>
-                <div class="parameter-metric">
-                  <div class="parameter-metric-name">Your kitchen tap</div>
-                  <div class="parameter-bar">
-                    <img
-                      src="../../images/output/{{ Participant_ID }}/{{ date }}/pH_FF.png"
-                    />
-                  </div>
-                </div>
-                {% if pH_FF_Evaluation is not none %}
-                <div style="padding-left: 12px;">
-                  <p>{{ pH_FF_Evaluation }}</p>
-                </div>
-                {% endif %}
-                <div class="parameter-metric">
-                  <div class="parameter-metric-name">
-                    Average community level for kitchen tap
-                  </div>
-                  <div class="parameter-bar">
-                    <img
-                      src="../../images/output/{{ Participant_ID }}/{{ date }}/pH_FF_Average.png"
-                    />
-                  </div>
-                </div>
-                {% if pH_Filtered_Available %}
-                <div class="parameter-metric">
-                  <div class="parameter-metric-name">
-                    Your filtered drinking water
-                  </div>
-                  <div class="parameter-bar">
-                    <img
-                      src="../../images/output/{{ Participant_ID }}/{{ date }}/pH_Filtered.png"
-                    />
-                  </div>
-                </div>
-                {% if pH_Filtered_Evaluation is not none %}
-                <div style="padding-left: 12px;">
-                  <p>{{ pH_Filtered_Evaluation }}</p>
-                </div>
-                {% endif %}
-                {% endif %}
-                <div class="paramter-line"></div>
-                <h4>Potential source and meaning</h4>
-                <p>
-                  pH is a scale from 0 to 14 that shows how acidic or basic your water is. Water with a pH below 6.5 is acidic. In Travis County, the water is usually more basic.
-                </p>
-                <h4>Why you should care</h4>
-                <p>
-                  Water is safe to drink if its pH is between 6.5 and 9.5. Water outside this range can still be safe, but it might indicate water quality problems.
-                </p>
-          </div>
+          {{ parameter_box(
+               record, 'pH', 'section2-2-9', 'pH.png',
+               title='pH',
+               unit='',
+               legend_kind='unregulated',
+               source_text='pH is a scale from 0 to 14 that shows how acidic or basic your water is. Water with a pH below 6.5 is acidic. In Travis County, the water is usually more basic.',
+               care_text='Water is safe to drink if its pH is between 6.5 and 9.5. Water outside this range can still be safe, but it might indicate water quality problems.') }}
           {% endif %}
         </div>
       </div>

@@ -705,8 +705,10 @@ async function generateImage(
     await page.setViewport({ width: 340, height: 70, deviceScaleFactor: 0.9 });
     await page.waitForSelector("#bar", { timeout: 5000 });
 
-    // Save debug HTML for specific parameter types (currently 0 and 1)
-    if (type === 0 || type === 1) {
+    // Save debug HTML for specific parameter types (currently 0 and 1).
+    // Off by default: this writes one HTML file per generated bar, which used to
+    // pile up ~900 files in debug/. Enable with DEBUG=1 when investigating a bar.
+    if (process.env.DEBUG && (type === 0 || type === 1)) {
       // Create debug folder if it doesn't exist
       const debugFolder = path.join(__dirname, "debug");
       if (!fs.existsSync(debugFolder)) {

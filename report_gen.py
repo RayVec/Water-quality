@@ -149,9 +149,11 @@ def _process_record_parameters(record: Dict[str, Any], all_parameters_config: Li
     # Identify parameters not tested or without valid data for this specific record
     record['not_tested_parameters'] = []
     tested_params_set = set(record["display_parameters"])
-    all_params_set = set(all_parameters_config) 
-    
-    missing_params = list(all_params_set - tested_params_set)
+
+    # Iterate the config list rather than a set difference: sets have no order, so
+    # the previous version produced a different ordering on every run, which made
+    # the same input generate byte-different PDFs.
+    missing_params = [p for p in all_parameters_config if p not in tested_params_set]
     
     for param in missing_params:
         reason = "No data available for this parameter in the sample."
@@ -267,8 +269,10 @@ def create_report_pdf(record: Dict[str, Any], final_report_dir: str) -> None:
     logging.info(f"Loading base template: {template_path}")
         
     template = env.get_template(template_path)
-    # Render the template with the record data (initially in English)
-    rendered_html = template.render(record)
+    # Render the template with the record data (initially in English).
+    # `record=record` additionally exposes the whole dict under one name so the
+    # parameter macros can look fields up dynamically, e.g. record['Lead_FF'].
+    rendered_html = template.render(record, record=record)
     # final_html_content will hold the potentially translated HTML
     final_html_content = rendered_html # Default to original
 
