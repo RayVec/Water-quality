@@ -2,6 +2,66 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
+const XLSX = require("xlsx"); // Import the xlsx library
+
+// --- Translation Setup ---
+const TRANSLATIONS_FILE = path.join(__dirname, "translations.xlsx");
+const ENGLISH_COL = "English";
+const SPANISH_COL = "Spanish";
+let translations = {}; // Global object to hold loaded translations
+
+function loadTranslations() {
+  const translationsLookup = {};
+  if (!fs.existsSync(TRANSLATIONS_FILE)) {
+    console.warn(
+      `Translations file not found: ${TRANSLATIONS_FILE}. Using English text only.`
+    );
+    return translationsLookup; // Return empty if file doesn't exist
+  }
+
+  try {
+    console.log(`Loading translations from ${TRANSLATIONS_FILE}...`);
+    const workbook = XLSX.readFile(TRANSLATIONS_FILE);
+    const sheetName = workbook.SheetNames[0]; // Assume translations are on the first sheet
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+    for (const row of jsonData) {
+      const englishText = row[ENGLISH_COL]
+        ? String(row[ENGLISH_COL]).trim()
+        : null;
+      const spanishText = row[SPANISH_COL]
+        ? String(row[SPANISH_COL]).trim()
+        : null;
+
+      if (englishText && spanishText) {
+        // Only add if both exist and Spanish is not empty
+        translationsLookup[englishText] = spanishText;
+      }
+    }
+    console.log(
+      `Successfully loaded ${
+        Object.keys(translationsLookup).length
+      } translations.`
+    );
+    return translationsLookup;
+  } catch (error) {
+    console.error(
+      `Error loading or processing translations from ${TRANSLATIONS_FILE}:`,
+      error
+    );
+    return {}; // Return empty on error
+  }
+}
+
+// Load translations when the script starts
+translations = loadTranslations();
+
+// Helper function to get translation or default to English
+function translate(englishText) {
+  return translations[englishText] || englishText;
+}
+// --- End Translation Setup ---
 
 // Load the shared configuration
 const configPath = path.join(__dirname, "config.json");
@@ -95,14 +155,20 @@ function calculateMaxValue(data, parameter) {
 async function processRecords() {
   try {
     console.log("Starting to process records...");
-    const dataPath = path.join(__dirname, "data.json");
+    const dataPath = process.env.DATA_JSON_PATH
+      ? path.resolve(process.env.DATA_JSON_PATH)
+      : path.join(__dirname, "data.json");
     const rawData = fs.readFileSync(dataPath, "utf-8");
     const records = JSON.parse(rawData);
-    console.log(`Loaded ${records.length} records from data.json`);
+    console.log(`Loaded ${records.length} records from ${dataPath}`);
 
     for (const record of records) {
       const participantId = record["Participant_ID"];
       let sampleDate = record["Sample_date"];
+      // --- Get Language Preference ---
+      const language = record["Language"] || "English"; // Default to English if missing
+      const isSpanish = language.toLowerCase() === "spanish";
+      // --- End Get Language Preference ---
 
       if (!participantId || !sampleDate) {
         console.log(
@@ -199,15 +265,31 @@ async function processRecords() {
           }
 
           // Process one item at a time
+          const filteredAvailable = record[`${parameter}_Filtered_Available`];
           for (const item of [
             "Outdoor",
             "Outdoor_Average",
             "FF",
             "FF_Average",
-            "AF",
+            "Filtered",
+            "Filtered_Average",
           ]) {
             try {
               // Get value based on parameter type
+              const rawValue = record[`${parameter}_${item}`];
+
+              if (
+                rawValue === undefined ||
+                rawValue === null ||
+                (typeof rawValue === "string" && rawValue.trim() === "")
+              ) {
+                continue;
+              }
+
+              if (item.startsWith("Filtered") && filteredAvailable === false) {
+                continue;
+              }
+
               let value;
               if (
                 parameter_type === 0 &&
@@ -215,12 +297,12 @@ async function processRecords() {
                 typeof parameterRanges[parameter][0] === "string"
               ) {
                 // For custom type 0, try to get value from specific field or parameter field
-                value = Number(record[`${parameter}_${item}`]);
+                value = Number(rawValue);
                 if (typeof value !== "number" || isNaN(value)) {
                   value = Number(record[parameter]);
                 }
               } else {
-                value = Number(record[`${parameter}_${item}`]);
+                value = Number(rawValue);
               }
 
               if (typeof value !== "number" || isNaN(value)) {
@@ -235,7 +317,7 @@ async function processRecords() {
                 `${parameter}_${item}.png`
               );
 
-              // Generate image one at a time
+              // Generate image one at a time, passing the language preference
               await generateImage(
                 parameter_type,
                 value,
@@ -244,7 +326,8 @@ async function processRecords() {
                 maxRange,
                 outputFilePath,
                 customBarConfig,
-                participantId
+                participantId,
+                isSpanish
               );
               console.log(
                 participantId,
@@ -289,7 +372,7 @@ async function processRecords() {
   }
 } // End of processRecords
 
-// Fix the HTML template issue - there was a missing opening < in the HTML tag
+// Modify generateImage to accept and use language preference
 async function generateImage(
   type,
   value,
@@ -298,7 +381,8 @@ async function generateImage(
   maxRange,
   outputFilePath,
   customBarConfig = null,
-  participantId = "unknown"
+  participantId = "unknown",
+  isSpanish = false // Add language flag parameter
 ) {
   const browser = await getBrowser();
   let page = null;
@@ -318,8 +402,10 @@ async function generateImage(
       const pairs = [];
       for (let i = 0; i < customBarConfig.length; i += 2) {
         if (i + 1 < customBarConfig.length) {
+          const englishLabel = customBarConfig[i];
           pairs.push({
-            label: customBarConfig[i],
+            // Apply translation conditionally
+            label: isSpanish ? translate(englishLabel) : englishLabel,
             value: customBarConfig[i + 1],
           });
         }
@@ -330,11 +416,18 @@ async function generateImage(
       // Add all labels first
       for (let i = 0; i < pairs.length; i++) {
         if (i === 0) {
-          const labelWidth = (pairs[i].value / maxValue) * 313;
-          labelsHTML += `<label style="width:${labelWidth}px">${pairs[i].label}</label>`; // Fixed typo: labelwidth -> labelWidth
-        } else {
+          const labelWidth = (pairs[i].value / maxValue) * 313 - 12;
+          labelsHTML += `<label style="width:${labelWidth}px">${pairs[i].label}</label>`;
+        }
+        // if it's the last label
+        else if (i === pairs.length - 1) {
           const labelWidth =
-            ((pairs[i].value - pairs[i - 1].value) / maxValue) * 313;
+            ((pairs[i].value - pairs[i - 1].value) / maxValue) * 313 - 12;
+          labelsHTML += `<label style="width:${labelWidth}px">${pairs[i].label}</label>`;
+        } else {
+          // 24 is the width of the range div
+          const labelWidth =
+            ((pairs[i].value - pairs[i - 1].value) / maxValue) * 313 - 24;
           labelsHTML += `<label style="width:${labelWidth}px">${pairs[i].label}</label>`;
         }
 
@@ -350,24 +443,37 @@ async function generateImage(
       }
 
       labelsHTML += "</div>";
-    } else {
-      // Default labels for water hardness
+    } else if (type !== 0 && type !== 1 && type !== 2) {
+      // Default labels case (e.g., hardness)
+      // Default labels for water hardness - Apply translation conditionally
+      const softLabel = isSpanish ? translate("Soft") : "Soft";
+      const moderateLabel = isSpanish ? translate("Moderate") : "Moderate";
+      const hardLabel = isSpanish ? translate("Hard") : "Hard";
       labelsHTML = `
     <div class="labels">
-      <label>Soft</label>
+      <label>${softLabel}</label>
       <div class="range">
         <line></line>
         <div>60</div>
       </div>
 
-      <label>Moderate</label>
+      <label>${moderateLabel}</label>
       <div class="range">
         <line></line>
         <div>120</div>
       </div>
-      <label>Hard</label>
+      <label>${hardLabel}</label>
     </div>`;
+    } else {
+      // No labels needed for type 1 or 2
+      labelsHTML = '<div class="labels"></div>';
     }
+
+    // Apply translation conditionally to "Acceptable Range"
+    const acceptableRangeLabel = isSpanish
+      ? translate("Acceptable Range")
+      : "Acceptable Range";
+
     const pageContent = `
     <!DOCTYPE html>
     <html>
@@ -468,6 +574,7 @@ async function generateImage(
             color: #a5a5a5;
             font-family: Inter;
             font-size: 14px;
+            width: 24px;
           }
           .range-node {
             position: relative;
@@ -516,8 +623,7 @@ async function generateImage(
             <line></line>
             <div id="minRange">${minRange}</div>
           </div>
-          <div class="range-label">Acceptable Range</div>
-
+          <div class="range-label">${acceptableRangeLabel}</div> 
           <div class="range-node">
             <line></line>
             <div id="maxRange">${maxRange}</div>
@@ -599,8 +705,8 @@ async function generateImage(
     await page.setViewport({ width: 340, height: 70, deviceScaleFactor: 0.9 });
     await page.waitForSelector("#bar", { timeout: 5000 });
 
-    // Log the final rendered HTML for #bar only for type 0 parameters
-    if (type === 1) {
+    // Save debug HTML for specific parameter types (currently 0 and 1)
+    if (type === 0 || type === 1) {
       // Create debug folder if it doesn't exist
       const debugFolder = path.join(__dirname, "debug");
       if (!fs.existsSync(debugFolder)) {

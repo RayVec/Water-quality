@@ -93,6 +93,15 @@
       "location": "Creedmoor Maha Water Supply Corp 13709 Schriber Road Buda, TX 78610",
       "annual_report": "https://creedmoormahawsc.com/documents/141/2023_CCR-ADA_Compliant.pdf",
       "image": "../../icons/creedmoor-maha-wsc.png"
+    },
+    "Aqua WSC": {
+      "name": "Aqua WSC",
+      "website": "https://www.aquawsc.com/",
+      "phone": "512-303-3943",
+      "location": "415 Old Austin Hwy Drawer P, Bastrop, TX 78602",
+      "image": "../../icons/aqua-logo.png"
     }
-  }
+  },
+  "output_report_subdirectory": "B6",
+  "data_source_filename": "data_source.xlsx"
 }

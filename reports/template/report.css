@@ -33,6 +33,9 @@
 @page toc {
   height: 1730px;
 }
+#toc {
+  page: toc;
+}
 @page page2 {
   height: 2400px;
 }
@@ -88,6 +91,49 @@
 #page10 {
   page: page10;
 }
+@page page11 {
+  height: 1500px;
+}
+#page11 {
+  page: page11;
+}
+@page page12 {
+  height: 1500px;
+}
+#page12 {
+  page: page12;
+}
+@page page13 {
+  height: 1500px;
+}
+#page13 {
+  page: page13;
+}
+@page page14 {
+  height: 1500px;
+}
+#page14 {
+  page: page14;
+}
+@page page15 {
+  height: 1500px;
+}
+#page15 {
+  page: page15;
+}
+@page page16 {
+  height: 1500px;
+}
+#page16 {
+  page: page16;
+}
+@page page17 {
+  height: 1500px;
+}
+#page17 {
+  page: page17;
+}
+
 #cover {
   position: relative;
   background: url("../../images/cover-background.png") no-repeat center;
@@ -95,10 +141,6 @@
   height: 755px;
   padding: 1px 0;
   /* page: report-cover; */
-}
-#toc {
-  page: toc;
-  height: 1730px;
 }
 
 h1 {
@@ -414,7 +456,7 @@ strong {
   letter-spacing: 0.16px;
 }
 .parameter-metric-binary .parameter-metric-name {
-  max-width: 220px;
+  max-width: 215px;
 }
 .parameter-bar {
   display: flex;
