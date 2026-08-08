@@ -28,42 +28,70 @@ navigation or the phone-friendly width.
 ## Pipeline
 
 ```
-data-source/<batch>.xlsx
+data/sources/<batch>.xlsx
         │
         │  ① data_analysis.py        pandas
         ▼
-    data.json                        flat per-participant records
+build/<batch>/records.json           flat per-participant records
         │
         │  ② bar-gen.js              node + puppeteer + sharp
         ▼
-images/output/<ID>/<date>/*.png      one scale bar per parameter × location
+build/<batch>/bars/<ID>/<date>/*.png     one scale bar per parameter × location
         │
         │  ③ report_gen.py           jinja2 + beautifulsoup + selenium + weasyprint
         ▼
 reports/<batch>/WATER.<ID>.<YYYY.MM.DD>.pdf     (AGUA.* for Spanish)
 ```
 
-`run_pipeline.py` drives all three steps and passes the selected batch between them via the
-environment variables `DATA_SOURCE_PATH`, `DATA_JSON_PATH` and `OUTPUT_SUBDIR_NAME`.
+### How the stages find their files
+
+A run is identified by exactly one thing: **the batch name**, which is the basename of the
+input workbook. `settings.resolve()` derives every path from it, `run_pipeline.py` writes the
+result to `build/<batch>/manifest.json`, and all three stages read that one file via a single
+environment variable:
+
+```bash
+MANIFEST='build/B8 Data/manifest.json'
+```
+
+```jsonc
+{
+  "batch":   "B8 Data",
+  "source":  ".../data/sources/B8 Data.xlsx",
+  "records": ".../build/B8 Data/records.json",
+  "bars":    ".../build/B8 Data/bars",
+  "work":    ".../build/work",
+  "reports": ".../reports/B8 Data"
+}
+```
+
+There are no fallback defaults. A stage started without `MANIFEST` exits with an error rather
+than guessing a batch — guessing is how a run silently overwrites a different batch's output.
+
+`settings.py` is the only module that builds paths. Moving a directory is a one-line change
+there; nothing else hardcodes the layout, including the template (see below).
 
 ### ① `data_analysis.py`
 - Reads the source workbook; maps numeric participant numbers to internal IDs
-  (`P0088T`, …) using `Participant_Hornsense_ID_Map.xlsx`.
+  (`P0088T`, …) using `data/reference/Participant_Hornsense_ID_Map.xlsx`.
 - Groups rows by `(Participant_ID, Sample_date)` and splits each group into three sample
   locations: **Outdoor** (outdoor tap), **FF** (indoor first flush), **Filtered**.
 - First pass computes community averages (with separate cohorts for chlorine- vs
   chloramine-disinfected systems); second pass builds the per-participant record.
 - Applies pass/fail checks from `config.json` and resolves the virtual `Disinfectant`
   parameter to either `Chlorine_*` or `Chloramine_*` depending on the utility.
-- Writes `data.json`.
+- Writes `build/<batch>/records.json`.
 
 ### ② `bar-gen.js`
 Renders each parameter's horizontal scale bar (acceptable range in green, measured value as a
 dot) in headless Chrome via Puppeteer and screenshots it to PNG. Spanish records get labels
-translated from `translations.xlsx`.
+translated from `data/reference/translations.xlsx`.
+
+Checks that Chrome can actually launch before starting and exits non-zero if it cannot. Set
+`DEBUG=1` to also dump each bar's HTML into `debug/`.
 
 ### ③ `report_gen.py`
-1. Renders `reports/template/template.html` with Jinja2.
+1. Renders `templates/template.html` with Jinja2.
 2. For Spanish reports, walks the DOM and substitutes text from `translations.xlsx`, calling
    the Google Translate API for anything missing and **caching new translations back into the
    spreadsheet**.
@@ -79,7 +107,7 @@ translated from `translations.xlsx`.
 ### Prerequisites
 - Python 3.13
 - Node.js (for `bar-gen.js`)
-- Google Chrome — used by Selenium in step ③ (Puppeteer downloads its own Chromium)
+- Google Chrome — used by Selenium in step ③
 - WeasyPrint's native libraries. On macOS:
   ```bash
   brew install pango libffi
@@ -95,8 +123,12 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 npm install
 ```
 
-> Note: `.venv/` is the working environment. The older `venv/` directory in this repo is stale
-> and unused.
+`npm install` also downloads Puppeteer's own Chrome into `~/.cache/puppeteer`. If that cache
+is ever cleared, `bar-gen.js` will refuse to start; restore it with:
+
+```bash
+npx puppeteer browsers install chrome
+```
 
 ---
 
@@ -109,16 +141,18 @@ npm install
 You will be prompted for:
 
 1. **Mode**
-   - `1` — full pipeline over a real batch in `data-source/`
+   - `1` — full pipeline over a real batch in `data/sources/`
    - `3` — template preview: renders one PDF from mock data into `reports/template/`, useful
-     for iterating on `template.html` / `report.css` without touching real data
-2. **Data source** — which `.xlsx` in `data-source/` to process. The file's basename becomes the
-   output subdirectory under `reports/`.
+     for iterating on `templates/template.html` and `templates/report.css` without touching
+     real data. Mode 3 skips step ① and substitutes a fake record; steps ② and ③ are identical
+     to a real run.
+2. **Batch** — which `.xlsx` in `data/sources/`. Its basename is the batch name and becomes
+   the output subdirectory under `reports/`.
 
-To run a single step by hand, set the same environment variables the driver would:
+To run one stage by hand, point it at an existing manifest:
 
 ```bash
-DATA_SOURCE_PATH=data-source/B8\ Data.xlsx OUTPUT_SUBDIR_NAME="B8 Data" .venv/bin/python data_analysis.py
+MANIFEST='build/B8 Data/manifest.json' .venv/bin/python report_gen.py
 ```
 
 ---
@@ -128,28 +162,46 @@ DATA_SOURCE_PATH=data-source/B8\ Data.xlsx OUTPUT_SUBDIR_NAME="B8 Data" .venv/bi
 | Path | Purpose |
 | --- | --- |
 | `run_pipeline.py` | Interactive driver for the three steps |
-| `data_analysis.py` | Step ① — Excel → `data.json` |
+| `settings.py` | Directory layout and batch → path resolution; the only place paths are built |
+| `config.json` | All tunable configuration — see below |
+| `data_analysis.py` | Step ① — Excel → `records.json` |
 | `bar-gen.js` | Step ② — scale-bar PNGs |
 | `report_gen.py` | Step ③ — HTML → PDF |
 | `height_calculation.py` | Selenium helper that measures rendered element heights |
-| `config.json` | Parameter limits, parameter types, water-utility directory |
-| `translations.xlsx` | English→Spanish dictionary, read by both Python and Node; auto-extended |
-| `reports/template/` | `template.html` + `report.css` — the report layout |
-| `data-source/` | Input workbooks, one per batch |
+| `templates/` | `template.html` + `report.css` — the report layout |
+| `data/sources/` | Input workbooks, one per batch |
+| `data/reference/` | ID map and translation dictionary — lookup tables that outlive any batch |
+| `assets/` | `icons/`, `images/`, `fonts/` (Inter) referenced by the report |
 | `reports/<batch>/` | Generated PDFs |
-| `icons/`, `images/`, `inter/` | Static assets and the Inter font |
-| `convert_b6_data.py`, `extract_out_of_range.py` | One-off helper scripts from earlier batches |
+| `archive/` | One-off scripts and reference files from earlier batches; not part of the pipeline |
 
 ### Generated, not tracked
-`temp/`, `debug/`, `images/output/` and `data.json` are rebuilt on every run and are gitignored.
-Delete them freely.
+`build/` holds everything the pipeline produces — records, bars and rendered HTML — and
+`debug/` holds the optional bar dumps. Both are gitignored and safe to delete at any time.
+
+`reports/` is also gitignored. The PDFs there are deliverables; the pipeline can regenerate
+any batch from `data/sources/`, but back them up before re-running a batch you have already
+distributed.
 
 ---
 
-## Parameter types
+## Configuration
 
-`config.json` assigns each parameter a type that controls both the pass/fail logic and how its
-scale bar is drawn:
+Everything tunable lives in `config.json`. No constants are duplicated in the Python or
+JavaScript sources, and nothing modifies the config at runtime.
+
+| Key | Purpose |
+| --- | --- |
+| `parameterRanges` | Acceptable range and bar maximum per parameter |
+| `parameterTypes` | Bar style and pass/fail logic per parameter (see table below) |
+| `parameters.all` | Parameters shown in the report — used by `report_gen.py` and `bar-gen.js` |
+| `parameters.measured` | What `data_analysis.py` computes: `all` plus the raw `Chlorine` and `Chloramine` columns that the virtual `Disinfectant` resolves to |
+| `columnMap` | Internal parameter name → column name in the source workbook |
+| `barDefaults` | Bar image size, and the axis maximum for unregulated (type 2) parameters |
+| `files` | Names of the lookup files in `data/reference/`, and the translation column headers |
+| `waterUtilities` | Per-utility contact details, annual-report link and logo (path relative to `assets/`) |
+
+### Parameter types
 
 | Type | Meaning | Examples |
 | --- | --- | --- |
@@ -158,6 +210,27 @@ scale bar is drawn:
 | `2` | Measured but unregulated — no range drawn | `Ammonia`, `Temperature` |
 | `3` | Must be zero | `Bacteria` |
 
-Adding a parameter means updating `parameterRanges`, `parameterTypes` and `parameters.all` in
-`config.json`, adding a column mapping in `PARAMETER_COLUMN_MAP` in `data_analysis.py`, and
-adding the corresponding section to `reports/template/template.html`.
+### Adding a parameter
+
+1. In `config.json`: add it to `parameterRanges`, `parameterTypes`, `parameters.all`,
+   `parameters.measured` and `columnMap`.
+2. In `templates/template.html`: add one `parameter_box(...)` call and a table-of-contents
+   entry.
+
+---
+
+## The report template
+
+`templates/template.html` renders the eight parameter sections through a single macro rather
+than repeating the same markup once per parameter. Changing how every parameter section looks
+is a change to `parameter_box` (or `parameter_box_binary`, used only by Bacteria); adding a
+parameter is one more call.
+
+The template never hardcodes how many `../` segments separate the rendered HTML from the files
+it references. `report_gen.py` computes `assets_url` and `bars_url` and passes them in, and
+`report.css` uses an `{{ASSETS}}` placeholder for the same reason. If you add an image
+reference, use those variables rather than a relative path.
+
+Each parameter's `<article>` wrapper is deliberately left inline, because the wrapper markup
+differs between pages (some are inside `.chapter`, some are not) and those differences affect
+the rendered width. See the comment block at the top of the template.

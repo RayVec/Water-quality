@@ -7,6 +7,8 @@ import json
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+import settings
+
 def run_command(command, description, env=None):
     """Run a command and wait for it to complete"""
     print(f"\n{'='*50}")
@@ -45,47 +47,40 @@ def run_command(command, description, env=None):
         print(f"\n❌ Failed to execute {description}: {str(e)}")
         return False
 
-def choose_data_source(data_directory):
-    """Prompt the user to select a data-source Excel file."""
-    if not os.path.isdir(data_directory):
-        print(f"❌ Data source directory not found: {data_directory}")
+def choose_batch():
+    """Prompt the user to select a batch (one .xlsx in data/sources/)."""
+    batches = settings.available_batches()
+
+    if not batches:
+        print(f"❌ No .xlsx files found in {settings.SOURCES_DIR}")
         sys.exit(1)
 
-    data_files = [f for f in os.listdir(data_directory) if f.lower().endswith('.xlsx')]
-    data_files.sort()
+    if len(batches) == 1:
+        print(f"✅ Automatically selected batch: {batches[0]}")
+        return batches[0]
 
-    if not data_files:
-        print(f"❌ No .xlsx files found in {data_directory}")
-        sys.exit(1)
-
-    if len(data_files) == 1:
-        selected = data_files[0]
-        print(f"✅ Automatically selected data source: {selected}")
-        return os.path.join(data_directory, selected), selected
-
-    print("Available data sources:")
-    for idx, filename in enumerate(data_files, start=1):
-        print(f"  {idx}. {filename}")
+    print("Available batches:")
+    for idx, name in enumerate(batches, start=1):
+        print(f"  {idx}. {name}")
 
     while True:
-        choice = input("Enter the number of the data source to use: ").strip()
+        choice = input("Enter the number of the batch to use: ").strip()
         if not choice.isdigit():
             print("Please enter a valid number from the list.")
             continue
 
         index = int(choice)
-        if index < 1 or index > len(data_files):
+        if index < 1 or index > len(batches):
             print("Selection out of range. Try again.")
             continue
 
-        selected = data_files[index - 1]
-        print(f"✅ Selected data source: {selected}")
-        return os.path.join(data_directory, selected), selected
+        print(f"✅ Selected batch: {batches[index - 1]}")
+        return batches[index - 1]
 
 def choose_pipeline_mode():
     """Prompt the user to select pipeline mode."""
     print("请选择要执行的流程:")
-    print("  1. 完整流程（真实数据：data-source Excel -> data_analysis -> bar-gen -> report_gen）")
+    print("  1. 完整流程（真实数据：data/sources 下的 Excel -> 分析 -> 刻度条 -> 报告）")
     print("  3. 模板流程（假数据 + 当前模板 -> reports/template）")
     while True:
         choice = input("请输入选项编号 (1 或 3): ").strip()
@@ -179,78 +174,55 @@ def build_template_record(config):
 
     return record
 
-def run_template_pipeline(project_dir):
-    """Generate one template PDF with fake data to reports/template."""
-    config_path = os.path.join(project_dir, "config.json")
-    with open(config_path, "r", encoding="utf-8") as f:
-        config = json.load(f)
+def write_template_records(manifest):
+    """Mode 3: skip the analysis stage and write one fake record instead."""
+    config = settings.load_config()
+    records_path = manifest["records"]
+    os.makedirs(os.path.dirname(records_path), exist_ok=True)
+    with open(records_path, "w", encoding="utf-8") as f:
+        json.dump([build_template_record(config)], f, indent=2, ensure_ascii=False)
 
-    temp_template_dir = os.path.join(project_dir, "temp", "template")
-    os.makedirs(temp_template_dir, exist_ok=True)
-    data_json_path = os.path.join(temp_template_dir, "template_data.json")
-
-    template_record = build_template_record(config)
-    with open(data_json_path, "w", encoding="utf-8") as f:
-        json.dump([template_record], f, indent=2, ensure_ascii=False)
-
-    env = os.environ.copy()
-    env["DATA_JSON_PATH"] = data_json_path
-    env["OUTPUT_SUBDIR_NAME"] = "template"
-
-    print(f"Template data JSON: {data_json_path}")
-    print("Reports will be stored under: reports/template")
-
-    if not run_command("node bar-gen.js", "Bar Chart Generation (Template)", env=env):
-        print("Template pipeline stopped due to error in bar chart generation step")
-        sys.exit(1)
-
-    if not run_command(f"\"{sys.executable}\" report_gen.py", "Report Generation (Template)", env=env):
-        print("Template pipeline stopped due to error in report generation step")
-        sys.exit(1)
-
-    print("\n🎉 Template PDF generated successfully at reports/template")
 
 def main():
     # Define the project directory
     project_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(project_dir)
-    
+
     print(f"Starting data processing pipeline in {project_dir}")
 
     mode = choose_pipeline_mode()
+    batch = "template" if mode == "3" else choose_batch()
 
-    if mode == "3":
-        run_template_pipeline(project_dir)
-        return
-
-    data_directory = os.path.join(project_dir, 'data-source')
-    data_source_path, data_source_filename = choose_data_source(data_directory)
-
-    # Export selection via environment variables for downstream scripts
-    output_subdir = os.path.splitext(data_source_filename)[0]
+    # One batch name in, every path out. Downstream stages get a single
+    # environment variable pointing at the resulting manifest.
+    manifest_path = settings.write_manifest(batch)
+    manifest = settings.resolve(batch)
     env = os.environ.copy()
-    env['DATA_SOURCE_PATH'] = data_source_path
-    env['OUTPUT_SUBDIR_NAME'] = output_subdir
+    env[settings.ENV_VAR] = str(manifest_path)
 
-    print(f"Data source path: {data_source_path}")
-    print(f"Reports will be stored under: reports/{output_subdir}")
-    
-    # Step 1: Run data_analysis.py (it will find its input via config.json)
-    if not run_command(f"\"{sys.executable}\" data_analysis.py", "Data Analysis", env=env):
+    print(f"Batch:    {batch}")
+    print(f"Manifest: {manifest_path}")
+    print(f"Reports:  {manifest['reports']}")
+
+    # Step 1: build the records. Real batches read the workbook; the template
+    # mode substitutes mock data so template.html can be previewed offline.
+    if mode == "3":
+        write_template_records(manifest)
+    elif not run_command(f"\"{sys.executable}\" data_analysis.py", "Data Analysis", env=env):
         print("Pipeline stopped due to error in data analysis step")
         sys.exit(1)
-    
+
     # Step 2: Run bar-gen.js
     if not run_command("node bar-gen.js", "Bar Chart Generation", env=env):
         print("Pipeline stopped due to error in bar chart generation step")
         sys.exit(1)
-    
+
     # Step 3: Run report_gen.py
     if not run_command(f"\"{sys.executable}\" report_gen.py", "Report Generation", env=env):
         print("Pipeline stopped due to error in report generation step")
         sys.exit(1)
-    
-    print("\n🎉 Complete data processing pipeline executed successfully!")
+
+    print(f"\n🎉 Pipeline finished. Reports are in {manifest['reports']}")
 
 if __name__ == "__main__":
     start_time = time.time()

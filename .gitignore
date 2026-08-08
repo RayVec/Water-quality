@@ -16,14 +16,12 @@ node_modules/
 Thumbs.db
 
 # --- Pipeline intermediates (regenerated on every run) ---
-# Per-participant rendered HTML + custom CSS produced by report_gen.py
-temp/
-# Debug copies of the bar-chart HTML written by bar-gen.js
+# Everything generated now lives under build/: records.json, the bar PNGs and
+# the per-participant rendered HTML + CSS. Safe to delete at any time.
+build/
+# Debug copies of the bar-chart HTML written by bar-gen.js when DEBUG=1
 debug/
-# Bar-chart PNGs written by bar-gen.js
-images/output/
-# Combined records emitted by data_analysis.py
-data.json
-# Generated PDFs; reports/template/ is source and stays tracked
-reports/*
-!reports/template/
+
+# --- Deliverables ---
+# Generated PDFs are not tracked. templates/ holds the report source.
+reports/

@@ -21,12 +21,13 @@
   ============================================================================
 -#}
 
-{#- 单条“指标名 + 刻度条图片”行 -#}
-{% macro bar_metric(label, participant_id, date, image) -%}
+{#- 单条“指标名 + 刻度条图片”行。
+    bars_url 由 report_gen.py 算好后传进来，模板不再自己拼 "../../" 深度。 -#}
+{% macro bar_metric(label, bars_url, image) -%}
 <div class="parameter-metric">
   <div class="parameter-metric-name">{{ label }}</div>
   <div class="parameter-bar">
-    <img src="../../images/output/{{ participant_id }}/{{ date }}/{{ image }}.png" />
+    <img src="{{ bars_url }}/{{ image }}.png" />
   </div>
 </div>
 {%- endmacro %}
@@ -90,7 +91,7 @@
                        filtered_eval_inside=true) -%}
 <div id="{{ section_id }}" class="box-regular">
   <h3>
-    <img src="../../icons/{{ icon }}" />
+    <img src="{{ assets_url }}/icons/{{ icon }}" />
     {% if title_span %}<span style="max-width: 259px">{{ title }}</span>{% else %}{{ title }}{% endif %}
   </h3>
   {{ legend(legend_kind) }}
@@ -98,19 +99,19 @@
 
   {% if not guard_outdoor or record[param ~ '_Outdoor'] is not none %}
   <h4>Outdoor</h4>
-  {{ bar_metric('Your level' ~ unit, record['Participant_ID'], record['date'], param ~ '_Outdoor') }}
+  {{ bar_metric('Your level' ~ unit, record['bars_url'], param ~ '_Outdoor') }}
   {{ eval_note(record[param ~ '_Outdoor_Evaluation']) }}
-  {{ bar_metric('Average community level' ~ unit, record['Participant_ID'], record['date'], param ~ '_Outdoor_Average') }}
+  {{ bar_metric('Average community level' ~ unit, record['bars_url'], param ~ '_Outdoor_Average') }}
   <div class="paramter-line"></div>
   {% endif %}
 
   <h4>Indoor</h4>
-  {{ bar_metric('Your kitchen tap' ~ unit, record['Participant_ID'], record['date'], param ~ '_FF') }}
+  {{ bar_metric('Your kitchen tap' ~ unit, record['bars_url'], param ~ '_FF') }}
   {{ eval_note(record[param ~ '_FF_Evaluation']) }}
-  {{ bar_metric('Average community level for kitchen tap' ~ unit, record['Participant_ID'], record['date'], param ~ '_FF_Average') }}
+  {{ bar_metric('Average community level for kitchen tap' ~ unit, record['bars_url'], param ~ '_FF_Average') }}
 
   {% if record[param ~ '_Filtered_Available'] %}
-  {{ bar_metric('Your filtered drinking water' ~ unit, record['Participant_ID'], record['date'], param ~ '_Filtered') }}
+  {{ bar_metric('Your filtered drinking water' ~ unit, record['bars_url'], param ~ '_Filtered') }}
   {% if filtered_eval_inside %}{{ eval_note(record[param ~ '_Filtered_Evaluation']) }}{% endif %}
   {% endif %}
   {% if not filtered_eval_inside %}{{ eval_note(record[param ~ '_Filtered_Evaluation']) }}{% endif %}
@@ -132,7 +133,7 @@
 {% set undetected = 'Not detected' %}
 <div id="{{ section_id }}" class="box-regular">
   <h3>
-    <img src="../../icons/{{ icon }}" />
+    <img src="{{ assets_url }}/icons/{{ icon }}" />
     {{ title }}
   </h3>
   {{ binary_metric('Acceptable range', 0) }}
@@ -166,7 +167,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../../inter/inter.css" />
+    <link rel="stylesheet" href="{{ assets_url }}/fonts/inter.css" />
     <link href="./report.css" rel="stylesheet" />
     <title>Report</title>
     <meta name="description" content="Report example" />
@@ -184,7 +185,7 @@
         "
       >
         <span style="color: white">Produced by WCWH</span>
-        <img style="margin-left: 10px" src="../../icons/wcwh-cover.svg" />
+        <img style="margin-left: 10px" src="{{ assets_url }}/icons/wcwh-cover.svg" />
       </div>
       <div class="report-title">Water Quality Report</div>
       <p style="color: white; margin-top: 30px; padding: 0 16px">
@@ -205,7 +206,7 @@
         <h1>Table Of Contents</h1>
         <div style="padding: 0 16px; margin-bottom: 28px">
           <div class="reminder">
-            <h3><img src="../../icons/click.svg"  />Clickable report</h3>
+            <h3><img src="{{ assets_url }}/icons/click.svg"  />Clickable report</h3>
             <p style="width: 345px">
               You can click on any links and catalogs in this report. They will take you to websites or other pages in the report.
             </p>
@@ -228,7 +229,7 @@
             {% else %}
             <a href="https://www.youtube.com/shorts/CsoLzUBysHc"
             {% endif %}
-              ><img src="../../images/video-guide.png"
+              ><img src="{{ assets_url }}/images/video-guide.png"
             /></a>
           </div>
 
@@ -449,9 +450,9 @@
             <h1>Test Results Overview</h1>
           </div>
           <div id="your-water-quality" class="section">
-            <h2><img src="../../icons/level.svg" />Your water quality</h2>
+            <h2><img src="{{ assets_url }}/icons/level.svg" />Your water quality</h2>
             <div class="box-highlight">
-              <h3><img src="../../icons/wcwh.svg" />WCWH Spot Test Results</h3>
+              <h3><img src="{{ assets_url }}/icons/wcwh.svg" />WCWH Spot Test Results</h3>
               <p style="margin-bottom: 8px">
                 Date of water sample: {{ Sample_date }}
               </p>
@@ -466,7 +467,7 @@
                 In acceptable range
                 </div>
                 <div style="display: flex; margin-bottom: 16px">
-                  <img style="margin-right: 10px" src="../../icons/yes.svg" />
+                  <img style="margin-right: 10px" src="{{ assets_url }}/icons/yes.svg" />
                   <div style="flex: 1">
                     <div style="margin-bottom: 8px">
                       In agreement with your Utility Company Report
@@ -484,13 +485,13 @@
                   </div>
                 </div>
                 <div style="display: flex; margin-bottom: 16px">
-                  <img style="margin-right: 10px" src="../../icons/yes.svg" />
+                  <img style="margin-right: 10px" src="{{ assets_url }}/icons/yes.svg" />
                   <div style="flex: 1">
                     Aligns with the WCWH average measurements in your area
                   </div>
                 </div>
                 <div style="display: flex; margin-bottom: 16px">
-                  <img style="margin-right: 10px" src="../../icons/yes.svg" />
+                  <img style="margin-right: 10px" src="{{ assets_url }}/icons/yes.svg" />
                   <div style="flex: 1">
                     Meets the standards established by the Texas Commission on Environmental Quality.
                   </div>
@@ -500,7 +501,7 @@
                 Since the tests we did were within the governmental standards
               </div>
               <div style="display: flex; margin-bottom: 16px">
-                <img style="margin-right: 10px" src="../../icons/yes.svg" />
+                <img style="margin-right: 10px" src="{{ assets_url }}/icons/yes.svg" />
                 <div style="flex: 1; color: #abbf63">
                   You don't need to take any action right now.
                 </div>
@@ -531,7 +532,7 @@
                 "
               ></div>
               <h3>
-                <img src="../../icons/parameters.svg" />Parameters' snapshot
+                <img src="{{ assets_url }}/icons/parameters.svg" />Parameters' snapshot
               </h3>
 
               <div>
@@ -639,7 +640,7 @@
       <div class="content">
         <div class="chapter">
           <div id="notice" class="section">
-            <h2><img src="../../icons/notice.svg" />Important Note</h2>
+            <h2><img src="{{ assets_url }}/icons/notice.svg" />Important Note</h2>
             <div class="box-regular">
               <h3>
                 This report does not show the complete picture of your water quality
@@ -662,7 +663,7 @@
                 <p style="margin-right: 8px; width: 265px">
                   These results show the water quality at the time we took your samples. Your water quality may change over time.
                 </p>
-                <img src="../../icons/change.svg" />
+                <img src="{{ assets_url }}/icons/change.svg" />
               </div>
             </div>
           </div>
@@ -679,7 +680,7 @@
           </div>
   
           <div id="section2-1" class="section">
-            <h2><img src="../../icons/glossary.svg" />Glossary</h2>
+            <h2><img src="{{ assets_url }}/icons/glossary.svg" />Glossary</h2>
             <div class="box-info">
               <p>
                 <strong style="margin-right: 6px;">Acceptable range</strong>is based on regulations from the Environmental Protection Agency (EPA) and the Texas Commission on Environmental Quality (TCEQ)
@@ -731,18 +732,18 @@
         <div class="chapter">
           <div id="section2-2" class="section">
             <h2>
-              <img src="../../icons/level.svg" />WCWH results of {{ display_parameters|length }} measures
+              <img src="{{ assets_url }}/icons/level.svg" />WCWH results of {{ display_parameters|length }} measures
             </h2>
             <img
-              src="../../icons/measures.png"
+              src="{{ assets_url }}/icons/measures.png"
               style="width: 100%; border-radius: 8px; margin-bottom: 16px"
             />
                         <h3>
-              <img src="../../icons/date.svg" style="padding-right: 3px" />Date of water sample
+              <img src="{{ assets_url }}/icons/date.svg" style="padding-right: 3px" />Date of water sample
             </h3>
             <p>{{ Sample_date }}</p>
             <div class="paramter-line"></div>
-            <h3><img src="../../icons/tips.svg" />How to read your results</h3>
+            <h3><img src="{{ assets_url }}/icons/tips.svg" />How to read your results</h3>
             <div class="box-info" style="line-height: 2; margin-bottom: 16px">
               <span style="margin-right: 8px">mg: milligram</span>
               <span style="margin-right: 8px">µg: microgram</span>
@@ -1059,7 +1060,7 @@
         <div class="chapter">
           <div id="section2-3" class="section">
             <h2>
-              <img src="../../icons/document.svg" />Your Water Utility's Annual
+              <img src="{{ assets_url }}/icons/document.svg" />Your Water Utility's Annual
               Report
             </h2>
             <p>
@@ -1089,7 +1090,7 @@
           </div>
           <div id="section3-1" class="section">
             <h2>
-              <img src="../../icons/aware.svg" />Stay aware of your water quality
+              <img src="{{ assets_url }}/icons/aware.svg" />Stay aware of your water quality
             </h2>
             <div class="box-regular">
               <p>
@@ -1098,13 +1099,13 @@
               <div class="paramter-line"></div>
               <div style="display: flex; margin-bottom: 8px">
                 <div style="width: 50%; display: flex; align-items: center">
-                  <img style="margin-right: 8px" src="../../icons/taste.svg" />
+                  <img style="margin-right: 8px" src="{{ assets_url }}/icons/taste.svg" />
                   <span>Bad taste</span>
                 </div>
                 <div style="width: 50%; display: flex; align-items: center">
                   <img
                     style="margin-right: 8px"
-                    src="../../icons/coloration.svg"
+                    src="{{ assets_url }}/icons/coloration.svg"
                   />
                   <span>Bad taste</span>
                 </div>
@@ -1113,12 +1114,12 @@
                 <div style="width: 50%; display: flex; align-items: center">
                   <img
                     style="margin-right: 8px"
-                    src="../../icons/particle.svg"
+                    src="{{ assets_url }}/icons/particle.svg"
                   />
                   <span style="max-width: 111px;">Cloudy water or visible particles </span>
                 </div>
                 <div style="width: 50%; display: flex; align-items: center">
-                  <img style="margin-right: 8px" src="../../icons/nose.png" />
+                  <img style="margin-right: 8px" src="{{ assets_url }}/icons/nose.png" />
                   <span>Bad smell </span>
                 </div>
               </div>
@@ -1126,7 +1127,7 @@
                 <div style="width: 50%; display: flex; align-items: center">
                   <img
                     style="margin-right: 8px"
-                    src="../../icons/hard-water.png"
+                    src="{{ assets_url }}/icons/hard-water.png"
                   />
                   <span>Hardness </span>
                 </div>
@@ -1134,7 +1135,7 @@
             </div>
           </div>
           <div id="section3-2" class="section">
-            <h2><img src="../../icons/action.svg" />Temporary solutions</h2>
+            <h2><img src="{{ assets_url }}/icons/action.svg" />Temporary solutions</h2>
             <p style="margin-bottom: 16px;">
               If you are worried about the safety of your drinking water, there are some temporary actions you can take while your water is being checked.
             </p>
@@ -1142,7 +1143,7 @@
               <h3>Drink bottled water</h3>
               <div style="display: flex; margin-top: 8px">
                 <img
-                  src="../../icons/water-bottle.png"
+                  src="{{ assets_url }}/icons/water-bottle.png"
                   style="margin-right: 8px"
                 />
                 <div style="width: 231px">
@@ -1193,7 +1194,7 @@
             <h3>Use a water filter</h3>
             <div style="display: flex; margin-top: 8px">
               <img
-                src="../../icons/water-filter.png"
+                src="{{ assets_url }}/icons/water-filter.png"
                 style="margin-right: 8px; width: 80px; height: 80px"
               />
               <div style="width: 231px">
@@ -1212,11 +1213,11 @@
             </div>
           </div>
           <div id="section3-3" class="section">
-            <h2><img src="../../icons/report-2.svg" />Report your concern</h2>
+            <h2><img src="{{ assets_url }}/icons/report-2.svg" />Report your concern</h2>
             <p>If you have concerns about water quality...</p>
             <div class="box-regular">
               <h3>
-                <img src="../../icons/phone.svg"/>
+                <img src="{{ assets_url }}/icons/phone.svg"/>
                 <div style="margin-left: 8px;max-width: 283px;">Contact Texas Commission on Environmental Quality (TCEQ)</div>
               </h3>
               <p style="margin: 16px 0">
@@ -1228,7 +1229,7 @@
               <div class="paramter-line"></div>
               <div style="display: flex">
                 <div style="margin-right: 24px">
-                  <img src="../../icons/TCEQ.png" />
+                  <img src="{{ assets_url }}/icons/TCEQ.png" />
                   <div style="text-align: center; margin-top: 8px">
                     <b>TCEQ</b>
                   </div>
@@ -1237,7 +1238,7 @@
                   <div style="display: flex">
                     <img
                       style="margin-right: 8px"
-                      src="../../icons/link-2.svg"
+                      src="{{ assets_url }}/icons/link-2.svg"
                     />
                     <a
   
@@ -1255,14 +1256,14 @@
                   <div style="display: flex">
                     <img
                       style="margin-right: 8px"
-                      src="../../icons/phone-2.svg"
+                      src="{{ assets_url }}/icons/phone-2.svg"
                     />
                     512-339-2929
                   </div>
                   <div style="display: flex">
                     <img
                       style="margin-right: 8px"
-                      src="../../icons/privacy.svg"
+                      src="{{ assets_url }}/icons/privacy.svg"
                     />
                     Anonymous report available
                   </div>
@@ -1275,7 +1276,7 @@
             </div>
             <div class="box-regular">
               <h3>
-                <img src="../../icons/phone.svg" />
+                <img src="{{ assets_url }}/icons/phone.svg" />
                 <div style="margin-left: 8px; max-width: 283px;">Contact your water utility</div>
               </h3>
               <p style="margin: 16px 0">
@@ -1287,7 +1288,7 @@
               <div class="paramter-line"></div>
               <div style="display: flex">
                 <div style="margin-right: 24px;text-align: center; max-width: 130px;">
-                  <img src="{{water_utility.image}}" />
+                  <img src="{{ assets_url }}/{{ water_utility.image }}" />
                   <div style="text-align: center; margin-top: 8px">
                     <b>{{Water_System}}</b>
                   </div>
@@ -1296,7 +1297,7 @@
                   <div style="display: flex">
                     <img
                       style="margin-right: 8px"
-                      src="../../icons/link-2.svg"
+                      src="{{ assets_url }}/icons/link-2.svg"
                     />
                     <a
                       href="{{water_utility.website}}"
@@ -1308,14 +1309,14 @@
                   <div style="display: flex">
                     <img
                       style="margin-right: 8px"
-                      src="../../icons/phone-2.svg"
+                      src="{{ assets_url }}/icons/phone-2.svg"
                     />
                     {{Water_System_Phone_Number}}
                   </div>
                   <div style="display: flex">
                     <img
                       style="margin-right: 8px"
-                      src="../../icons/location.svg"
+                      src="{{ assets_url }}/icons/location.svg"
                     />
                     <span style="max-width: 171px"
                       >{{water_utility.location}}</span
@@ -1357,7 +1358,7 @@
         <div class="chapter">
           <div class="section">
             <div class="box-regular">
-              <h3><img src="../../icons/phone.svg" />
+              <h3><img src="{{ assets_url }}/icons/phone.svg" />
                 <div style="margin-left: 8px;max-width: 283px;">Contact WCWH</div>
               </h3>
               <p style="margin: 16px 0">
@@ -1370,12 +1371,12 @@
                   <div style="display: flex">
                     <img
                       style="margin-right: 8px"
-                      src="../../icons/phone-2.svg"
+                      src="{{ assets_url }}/icons/phone-2.svg"
                     />
                     512-284-3168
                   </div>
                   <div style="display: flex">
-                    <img style="margin-right: 8px" src="../../icons/mail.svg" />
+                    <img style="margin-right: 8px" src="{{ assets_url }}/icons/mail.svg" />
                     <a
                       href="mailto:wcwhcommunity@austin.utexas.edu"
                       target="_blank"
@@ -1389,7 +1390,7 @@
             </div>
             <div class="box-regular">
               <h3>
-                <img src="../../icons/report.svg" />
+                <img src="{{ assets_url }}/icons/report.svg" />
                 <div style="margin-left: 8px;max-width: 283px;">Report any water quality issues in the WCWH app</div>
               </h3>
               <p style="margin: 16px 0">
@@ -1398,7 +1399,7 @@
             </div>
             <div class="box-regular">
               <h3>
-                <img src="../../icons/neighbor.svg" />
+                <img src="{{ assets_url }}/icons/neighbor.svg" />
                 <div style="margin-left: 8px;max-width: 283px;">Talk to your neighbors</div>  
               </h3>
               <p style="margin: 16px 0">
@@ -1418,7 +1419,7 @@
           </div>
           <div id="section4-1" class="section">
             <h2>
-              <img src="../../icons/spot-check.svg" />This test is a spot check
+              <img src="{{ assets_url }}/icons/spot-check.svg" />This test is a spot check
             </h2>
             <p>
               Samples were collected from:
@@ -1431,9 +1432,9 @@
             </p>
             <p>
               {% if Language.lower() == 'spanish' %}
-              <img src="../../icons/spot-check-example-es.png" />
+              <img src="{{ assets_url }}/icons/spot-check-example-es.png" />
               {% else %}
-              <img src="../../icons/spot-check-example.png" />
+              <img src="{{ assets_url }}/icons/spot-check-example.png" />
               {% endif %}
             </p>
             <div class="box-notice">
@@ -1449,8 +1450,8 @@
             </div>
           </div>
           <!-- <div id="section4-2" class="section">
-            <h2><img src="../../icons/spot-check.svg" />WCWH sampling scope</h2>
-            <img src="../../icons/sample-scope-example.png" width="345px" />
+            <h2><img src="{{ assets_url }}/icons/spot-check.svg" />WCWH sampling scope</h2>
+            <img src="{{ assets_url }}/icons/sample-scope-example.png" width="345px" />
             <p style="margin: 16px 0">
               Water samples were collected from your home 3 times over a month.
               Outdoor samples were taken each visit, and an indoor sample from
@@ -1501,16 +1502,16 @@
             <div class="section">
               <p style="margin: 16px 0">As of February 2025, we have collected:</p>
               {% if Language.lower() == 'spanish' %}
-              <img src="../../icons/sample-scope-figure-es.png" width="345px" />
+              <img src="{{ assets_url }}/icons/sample-scope-figure-es.png" width="345px" />
               {% else %}
-              <img src="../../icons/sample-scope-figure.png" width="345px" />
+              <img src="{{ assets_url }}/icons/sample-scope-figure.png" width="345px" />
               {% endif %}
             </div>
         </div>
         <div class="chapter">
           <div id="section4-3" class="section">
             <h2>
-              <img src="../../icons/institution.svg" />
+              <img src="{{ assets_url }}/icons/institution.svg" />
   
               Distribution of WCWH water samples by utility and water source
             </h2>
@@ -1518,7 +1519,7 @@
               The figures below show the distribution of homes sampled by their water utility and where those utilities source their water.
             </p>
             <h3>Water Utilities</h3>
-            <img src="../../icons/distribution-utility.png" width="345px" />
+            <img src="{{ assets_url }}/icons/distribution-utility.png" width="345px" />
           </div>
         </div>
       </div>
@@ -1550,18 +1551,18 @@
           <div class="section">
             <h3 style="margin-top: 8px">Water Sources</h3>
             <div style="display: flex; align-items: center">
-              <img src="../../icons/annotation.svg" style="margin-right: 8px" />
+              <img src="{{ assets_url }}/icons/annotation.svg" style="margin-right: 8px" />
               <span style="color: gray">Sampled by utilities</span>
             </div>
             {% if Language.lower() == 'spanish' %}
             <img
-              src="../../icons/distribution-source-es.png"
+              src="{{ assets_url }}/icons/distribution-source-es.png"
               width="345px"
               style="margin-top: 8px"
             />
             {% else %}
             <img
-              src="../../icons/distribution-source.png"
+              src="{{ assets_url }}/icons/distribution-source.png"
               width="345px"
               style="margin-top: 8px"
             />
@@ -1571,7 +1572,7 @@
         <div class="chapter">
           <div id="section4-4" class="section">
             <h2>
-              <img src="../../icons/water-quality-mean.svg" />What does "water quality" mean?
+              <img src="{{ assets_url }}/icons/water-quality-mean.svg" />What does "water quality" mean?
             </h2>
             <p style="margin-bottom: 16px">
               Water quality means the condition of the water based on its chemical, physical, and biological properties. It tells us if the water is good for a specific purpose.
@@ -1621,7 +1622,7 @@
         <div class="chapter">
           <div id="section4-5" class="section">
             <h2>
-              <img src="../../icons/zoom.svg" />
+              <img src="{{ assets_url }}/icons/zoom.svg" />
               What can affect the water quality in your home?
             </h2>
             <p style="margin-bottom: 16px">
@@ -1635,7 +1636,7 @@
                   The water in your home typically comes from a lake, river, or groundwater source.
                 </p>
               </div>
-              <img src="../../icons/river.svg" />
+              <img src="{{ assets_url }}/icons/river.svg" />
             </div>
             <div class="box-regular" style="display: flex">
               <div style="width: 270px; margin-right: 8px">
@@ -1644,7 +1645,7 @@
                   The way the water is treated at the treatment plant before it reaches your home can affect its quality.
                 </p>
               </div>
-              <img src="../../icons/water_treatment.svg" />
+              <img src="{{ assets_url }}/icons/water_treatment.svg" />
             </div>
             <div class="box-regular" style="display: flex">
               <div style="width: 270px; margin-right: 8px">
@@ -1653,7 +1654,7 @@
                   The network of pipes that carry water to your home can have an impact on its quality.
                 </p>
               </div>
-              <img src="../../icons/distribution.svg" />
+              <img src="{{ assets_url }}/icons/distribution.svg" />
             </div>
             <div class="box-regular" style="display: flex">
               <div style="width: 270px; margin-right: 8px">
@@ -1662,7 +1663,7 @@
                   The plumbing in your home and any installed water filtration systems can influence the water quality.
                 </p>
               </div>
-              <img src="../../icons/plumbing.svg" />
+              <img src="{{ assets_url }}/icons/plumbing.svg" />
             </div>
             <div class="box-regular" style="display: flex">
               <div style="width: 270px; margin-right: 8px">
@@ -1671,7 +1672,7 @@
                   The quality of the water in your home can vary based on the amount of water you use and the timing of when you use it.
                 </p>
               </div>
-              <img src="../../icons/running-water.svg" />
+              <img src="{{ assets_url }}/icons/running-water.svg" />
             </div>
           </div>
          

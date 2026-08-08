@@ -136,7 +136,7 @@
 
 #cover {
   position: relative;
-  background: url("../../images/cover-background.png") no-repeat center;
+  background: url("{{ASSETS}}/images/cover-background.png") no-repeat center;
   background-size: cover;
   height: 755px;
   padding: 1px 0;

@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 import logging
 import shutil
-from height_calculation import calculate_rendered_height
+from height_calculation import calculate_rendered_heights
 import numbers # Import the numbers module
 import time
 # from translations import SPANISH_TRANSLATIONS # No longer importing directly
@@ -13,9 +13,11 @@ from bs4 import BeautifulSoup, NavigableString, Comment # Import BeautifulSoup A
 from googletrans import Translator # Import Translator
 import asyncio # Import asyncio
 import re # Import regex for stripping tags
-from typing import List, Dict, Any, Optional, Set, Union # Import types for annotations
+from typing import List, Dict, Any, Optional, Set # Import types for annotations
 # import pprint # No longer needed for saving
 import pandas as pd # Import pandas for Excel handling
+
+import settings
 
 # Configure logging
 logging.basicConfig(
@@ -24,10 +26,15 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-# --- Translation Handling --- 
-TRANSLATIONS_FILE = "translations.xlsx"
-ENGLISH_COL = "English"
-SPANISH_COL = "Spanish"
+# --- Configuration ---
+# Loaded once here so module-level constants can come from config.json rather
+# than being duplicated across scripts. main() reuses the same object.
+CONFIG: Dict[str, Any] = settings.load_config()
+
+# --- Translation Handling ---
+TRANSLATIONS_FILE = str(settings.REFERENCE_DIR / CONFIG['files']['translations'])
+ENGLISH_COL = CONFIG['files']['translationColumns']['english']
+SPANISH_COL = CONFIG['files']['translationColumns']['spanish']
 
 def _load_translations_from_excel() -> Dict[str, str]:
     """Loads translations from the Excel file into a dictionary."""
@@ -178,9 +185,7 @@ def _process_record_parameters(record: Dict[str, Any], all_parameters_config: Li
     return record # Return the modified record
 
 def gen_report(output_file_name: str, participant_id: str, final_pdf_filename: str, language_code: str, final_report_dir: str) -> None:
-    # Define the paths
-    temp_folder: str = os.path.dirname(output_file_name)  # This is in the temp folder
-    reports_folder: str = final_report_dir 
+    reports_folder: str = final_report_dir
     
     # Ensure the final report directory exists (might be redundant if created in main, but safe)
     os.makedirs(reports_folder, exist_ok=True)
@@ -245,29 +250,38 @@ async def fetch_translations_async(texts_to_translate: List[str]) -> Dict[str, s
     return api_translations
 
 # Rename function again based on user preference
-def create_report_pdf(record: Dict[str, Any], final_report_dir: str) -> None:
+def create_report_pdf(record: Dict[str, Any], manifest: Dict[str, str]) -> None:
     id: str = str(record["Participant_ID"])
     date: str = record['date'] # Original date in YYYY-MM-DD
     language: str = record.get("Language", "English") # Default to English if missing
     language_code: str = 'es' if language.lower() == 'spanish' else 'en'
-    
+    final_report_dir: str = manifest['reports']
+
     logging.info(f"Processing template for Participant ID: {id}, Date: {date}, Language: {language} ({language_code})" )
-    
-    # Set up Jinja2 environment to load templates from the current directory
-    env = Environment(loader=FileSystemLoader('./'))
-    
+
+    # Set up Jinja2 environment to load templates from the template directory
+    env = Environment(loader=FileSystemLoader(str(settings.TEMPLATE_DIR)))
+
     # Add dynamic metadata for templates
     record['latest_annual_report_year'] = datetime.now().year - 1
 
     # Define and create temporary directory for this report
-    temp_dir = f"./temp/{id}"
+    temp_dir = os.path.join(manifest['work'], id)
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir, exist_ok=True)
-    
+
+    # Hand the template ready-made relative URLs rather than letting it hardcode
+    # how many "../" segments separate the rendered HTML from the files it
+    # references. Moving any of these directories is then a settings.py change.
+    record['bars_url'] = os.path.relpath(
+        os.path.join(manifest['bars'], id, date), temp_dir
+    )
+    record['assets_url'] = os.path.relpath(settings.ASSETS_DIR, temp_dir)
+
     # Load the base HTML template
-    template_path = './reports/template/template.html'
-    logging.info(f"Loading base template: {template_path}")
-        
+    template_path = 'template.html'
+    logging.info(f"Loading base template: {settings.TEMPLATE_DIR / template_path}")
+
     template = env.get_template(template_path)
     # Render the template with the record data (initially in English).
     # `record=record` additionally exposes the whole dict under one name so the
@@ -386,10 +400,17 @@ def generate_custom_css(html_file_path: str, participant_id: str) -> None:
         os.remove(participant_css_path)
     
     # Read the template CSS file
-    template_css_path = "./reports/template/report.css"
+    template_css_path = str(settings.TEMPLATE_DIR / "report.css")
     css_content = ""
     with open(template_css_path, 'r', encoding='utf-8') as css_file:
         css_content = css_file.read()
+
+    # The CSS is copied next to the rendered HTML, so its url() references
+    # resolve from there. Same reasoning as assets_url in the template: the
+    # stylesheet uses an {{ASSETS}} placeholder instead of counting "../".
+    css_content = css_content.replace(
+        "{{ASSETS}}", os.path.relpath(settings.ASSETS_DIR, temp_folder)
+    )
     
     # Determine the pages to measure dynamically based on the rendered HTML
     pages_to_measure = []
@@ -413,10 +434,8 @@ def generate_custom_css(html_file_path: str, participant_id: str) -> None:
         pages_to_measure = ["toc", "page2", "page3", "page4", "page5", "page6", "page7", "page8", "page9", "page10"]
     
     # Calculate heights for all pages at once
-    import re
     try:
         # Use the new, optimized function that calculates all heights in a single browser session
-        from height_calculation import calculate_rendered_heights
         page_heights = calculate_rendered_heights(html_file_path, css_content, pages_to_measure)
         
         for page_id, height in page_heights.items():
@@ -546,22 +565,18 @@ def remove_empty_pages_and_update_toc(html_content: str) -> str:
 
 # Main script execution remains synchronous
 def main() -> None:
-    file_path: str = os.environ.get('DATA_JSON_PATH', 'data.json')
-    if not os.path.exists('./temp'):
-        os.makedirs('./temp')
-    
-    # Load configuration
-    with open('config.json', 'r') as config_file:
-        config = json.load(config_file)
-        water_utilities = config.get('waterUtilities', {}) 
-        parameters = config['parameters']['all']
-        # Determine output subdirectory (allow environment override)
-        output_subdir_name = os.environ.get('OUTPUT_SUBDIR_NAME')
-        if not output_subdir_name:
-            output_subdir_name = config.get('output_report_subdirectory', 'b6')
-        
+    # Every path for this run comes from the manifest named by $MANIFEST
+    manifest = settings.load_manifest()
+    file_path: str = manifest['records']
+    os.makedirs(manifest['work'], exist_ok=True)
+
+    # Configuration is loaded once at module level (see CONFIG above)
+    config = CONFIG
+    water_utilities = config.get('waterUtilities', {})
+    parameters = config['parameters']['all']
+
     # Define and create the final output directory
-    final_report_dir = os.path.join(".", "reports", output_subdir_name)
+    final_report_dir = manifest['reports']
     os.makedirs(final_report_dir, exist_ok=True)
     logging.info(f"Final reports will be saved to: {final_report_dir}")
 
@@ -584,7 +599,7 @@ def main() -> None:
                     logging.warning(f"Water utility '{water_utility_key}' not found for {record.get('Participant_ID')}")
                 
                 # Call the renamed function, passing the final report directory
-                create_report_pdf(record, final_report_dir)
+                create_report_pdf(record, manifest)
                 processed_records += 1
                 
                 if (i + 1) % 10 == 0 or (i + 1) == total_records:
@@ -601,4 +616,4 @@ if __name__ == "__main__":
     main()
 
 # Optional cleanup
-# shutil.rmtree('./temp', ignore_errors=True)
+# shutil.rmtree(settings.BUILD_DIR, ignore_errors=True)

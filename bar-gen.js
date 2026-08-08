@@ -1,13 +1,26 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
-const sharp = require("sharp");
 const XLSX = require("xlsx"); // Import the xlsx library
 
+// --- Shared configuration ---
+// Loaded first so everything below can read its constants from config.json
+// instead of hardcoding them here as well as in the Python scripts.
+const configPath = path.join(__dirname, "config.json");
+const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+const parameterRanges = config.parameterRanges;
+const parameters = config.parameters.all;
+const barMaxValues = config.barDefaults.maxValue;
+
 // --- Translation Setup ---
-const TRANSLATIONS_FILE = path.join(__dirname, "translations.xlsx");
-const ENGLISH_COL = "English";
-const SPANISH_COL = "Spanish";
+const TRANSLATIONS_FILE = path.join(
+  __dirname,
+  "data",
+  "reference",
+  config.files.translations
+);
+const ENGLISH_COL = config.files.translationColumns.english;
+const SPANISH_COL = config.files.translationColumns.spanish;
 let translations = {}; // Global object to hold loaded translations
 
 function loadTranslations() {
@@ -63,26 +76,7 @@ function translate(englishText) {
 }
 // --- End Translation Setup ---
 
-// Load the shared configuration
-const configPath = path.join(__dirname, "config.json");
-const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-const parameterRanges = config.parameterRanges;
-const parameters = config.parameters.all; // Add this line
 
-async function resizeImage(inputPath, outputPath) {
-  try {
-    await sharp(inputPath)
-      .resize(307, 63, {
-        fit: "cover",
-        position: "center",
-      })
-      .png({ quality: 100, compressionLevel: 0 })
-      .toFile(outputPath);
-    console.log(`Image resized and saved to ${outputPath}`);
-  } catch (error) {
-    console.error("Error resizing image:", error);
-  }
-}
 
 // Create a single browser instance that will be reused
 let browserInstance = null;
@@ -152,15 +146,56 @@ function calculateMaxValue(data, parameter) {
 }
 
 // Modify the processRecords function to handle errors better
+// Read the run manifest named by $MANIFEST. Same file the Python stages read,
+// so the batch and its paths are defined in exactly one place. No fallback:
+// guessing a default here is how a stage ends up writing over another batch.
+function loadManifest() {
+  const manifestPath = process.env.MANIFEST;
+  if (!manifestPath) {
+    console.error("\n❌ MANIFEST is not set.");
+    console.error("   Run the pipeline through run_pipeline.py, or point it at a batch:");
+    console.error("       MANIFEST='build/<batch>/manifest.json' node bar-gen.js\n");
+    process.exit(1);
+  }
+  if (!fs.existsSync(manifestPath)) {
+    console.error(`\n❌ Manifest not found: ${manifestPath}\n`);
+    process.exit(1);
+  }
+  return JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+}
+
+// Fail fast if the browser is unavailable.
+//
+// Every image is generated inside its own try/catch so that one bad parameter
+// cannot abort the batch. That also means a missing browser used to produce 500
+// caught errors and still exit 0, so run_pipeline.py reported success while
+// writing zero images and the PDFs came out with no scale bars. Check once up
+// front instead and stop the pipeline with a real exit code.
+async function assertBrowserAvailable() {
+  try {
+    await getBrowser();
+  } catch (error) {
+    console.error("\n❌ Could not launch Chrome, so no scale bars can be generated.");
+    console.error(`   ${error.message.split("\n")[0]}`);
+    console.error("\n   Puppeteer downloads its own Chrome into ~/.cache/puppeteer during");
+    console.error("   `npm install`. If that cache was cleared, restore it with:\n");
+    console.error("       npx puppeteer browsers install chrome\n");
+    process.exit(1);
+  }
+}
+
 async function processRecords() {
   try {
+    // Manifest first: it is the cheap check, and there is no point launching a
+    // browser for a run we cannot locate.
+    const manifest = loadManifest();
+    await assertBrowserAvailable();
+
     console.log("Starting to process records...");
-    const dataPath = process.env.DATA_JSON_PATH
-      ? path.resolve(process.env.DATA_JSON_PATH)
-      : path.join(__dirname, "data.json");
+    const dataPath = path.resolve(manifest.records);
     const rawData = fs.readFileSync(dataPath, "utf-8");
     const records = JSON.parse(rawData);
-    console.log(`Loaded ${records.length} records from ${dataPath}`);
+    console.log(`Batch "${manifest.batch}": loaded ${records.length} records from ${dataPath}`);
 
     for (const record of records) {
       const participantId = record["Participant_ID"];
@@ -188,8 +223,7 @@ async function processRecords() {
       // Update the sampleDate directly in the "yyyy-mm-dd" format
       sampleDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       const recordFolder = path.join(
-        __dirname,
-        "images/output/",
+        path.resolve(manifest.bars),
         participantId,
         sampleDate
       );
@@ -228,11 +262,12 @@ async function processRecords() {
             maxValue = calculateMaxValue(records, parameter);
             [minRange, maxRange] = parameterRanges[parameter] || [0, 0];
           } else if (parameter_type === 2) {
-            if (parameter === "Ammonia") {
-              maxValue = 6;
-            } else {
-              maxValue = 1;
-            }
+            // Unregulated parameters have no range, so the bar just needs a
+            // sensible upper bound. Per-parameter overrides live in config.json.
+            maxValue =
+              barMaxValues[parameter] !== undefined
+                ? barMaxValues[parameter]
+                : barMaxValues._default;
             minRange = 0;
             maxRange = maxValue;
           }

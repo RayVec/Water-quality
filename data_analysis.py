@@ -1,13 +1,16 @@
 import pandas as pd
-from decimal import Decimal, InvalidOperation
+from decimal import InvalidOperation
 import json
 import sys
-from datetime import datetime
 import os
 import logging
 
+import settings
+
 def convert_id_number_to_participant_id(number):
-    hornsense_map_path = 'Participant_Hornsense_ID_Map.xlsx'
+    # ID_MAP_FILE comes from config.json; it is defined below, before this
+    # function is ever called.
+    hornsense_map_path = ID_MAP_FILE
     if not os.path.exists(hornsense_map_path):
         logging.error(f"Hornsense ID mapping file not found: {hornsense_map_path}")
         return None
@@ -36,21 +39,19 @@ def convert_id_number_to_participant_id(number):
 
 # --- Load Config and Get Input File Path --- 
 try:
-    with open('config.json', 'r') as config_file:
-        config = json.load(config_file)
+    config = settings.load_config()
     
     # Get configuration values
     parameter_ranges = config['parameterRanges']
     parameter_types = config['parameterTypes']  # Load parameter types from config
-    parameters = config['parameters']['all']  # Load parameter list from config
-    # Allow environment variable override for data source path
-    env_data_path = os.environ.get('DATA_SOURCE_PATH')
-    if env_data_path:
-        data_filename = env_data_path
-    else:
-        # Get the data source filename, default to 'data_source.xlsx'
-        data_filename = config.get('data_source_filename', 'data_source.xlsx')
-    
+    # 'measured' is what this script computes: the reported parameters plus the
+    # raw Chlorine/Chloramine columns that the virtual 'Disinfectant' resolves to.
+    # The report side uses parameters.all, which omits those two.
+    parameters = config['parameters']['measured']
+    # Internal parameter name -> column name in the source workbook
+    PARAMETER_COLUMN_MAP = config['columnMap']
+    ID_MAP_FILE = str(settings.REFERENCE_DIR / config['files']['idMap'])
+
 except FileNotFoundError:
     print("❌ Error: Configuration file 'config.json' not found.")
     sys.exit(1)
@@ -61,12 +62,12 @@ except KeyError as e:
     print(f"❌ Error: Missing required key '{e}' in 'config.json'.")
     sys.exit(1)
 
-# Construct the full file path (assuming script is run from project root)
-file_path = os.path.join(".", data_filename) 
+# Every path for this run comes from the manifest named by $MANIFEST
+manifest = settings.load_manifest()
+file_path = manifest['source']
 
-# Check if the input file path exists
 if not os.path.exists(file_path):
-    print(f"❌ Error: Input file '{data_filename}' not found at expected path '{file_path}'. Check config.json.")
+    print(f"❌ Error: Input workbook not found: {file_path}")
     sys.exit(1)
 
 print(f"Processing data from: {file_path}")
@@ -74,7 +75,7 @@ try:
     data = pd.read_excel(file_path)
 
     # Load Hornsense ID mapping
-    hornsense_map_path = os.path.join('.', 'Participant_Hornsense_ID_Map.xlsx')
+    hornsense_map_path = ID_MAP_FILE
     if not os.path.exists(hornsense_map_path):
         print(f"❌ Error: Hornsense ID mapping file '{hornsense_map_path}' not found.")
         sys.exit(1)
@@ -93,26 +94,6 @@ except Exception as e:
     print(f"❌ Error: Failed to read or process Excel file '{file_path}': {e}")
     sys.exit(1)
 # --- End Load Config and Get Input File Path ---
-
-# add monochloramine and chlorine to parameters list loaded from config
-# Note: Ensure 'Chloramine' and 'Chlorine' ranges/types are defined in config.json if they need specific handling
-if 'Chloramine' not in parameters:
-    parameters.append('Chloramine')
-if 'Chlorine' not in parameters:
-    parameters.append('Chlorine')
-
-# Map internal parameter names to source data column names
-PARAMETER_COLUMN_MAP = {
-    'Chloramine': 'Monochloramine',
-    'Chlorine': 'Chlorine',
-    'pH': 'pH',
-    'Turbidity': 'Turbidity',
-    'Nitrate': 'Nitrate',
-    'Nitrite': 'Nitrite',
-    'Ammonia': 'Ammonia',
-    'Lead': 'Lead',
-    'Bacteria': 'E.coli'
-}
 
 # Convert parameter ranges from config to the format needed by check_standard
 standards = {}
@@ -532,8 +513,9 @@ for record in combined_records:
         if pd.isna(value):
             record[key] = None
 
-# Export combined_records to JSON file
-json_file_path = 'data.json'
+# Export combined_records to the path the manifest designates
+json_file_path = manifest['records']
+os.makedirs(os.path.dirname(json_file_path), exist_ok=True)
 
 with open(json_file_path, 'w') as json_file:
     json.dump(combined_records, json_file, indent=4, default=str)
