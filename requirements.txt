@@ -24,6 +24,7 @@ pandas==2.3.3
 pillow==12.1.1
 pycparser==3.0
 pydyf==0.12.1
+pymupdf==1.28.2
 pyphen==0.17.2
 PySocks==1.7.1
 python-dateutil==2.9.0.post0
