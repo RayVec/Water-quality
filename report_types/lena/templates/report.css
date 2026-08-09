@@ -21,6 +21,11 @@
   position: relative;
   height: 800px;
   padding: 1px 0;
+  background-color: #ffa8ba;
+  background-image: url("{{ASSETS}}/images/cover-background.jpg");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 377px auto;
 }
 #cover .cover-header {
   margin-top: 50px;
@@ -58,11 +63,7 @@
   font-size: 16px;
 }
 #cover .cover-illustration {
-  position: relative;
-  height: 420px;
-  margin-top: 8px;
-  background: url("{{ASSETS}}/images/cover-background.jpg") no-repeat center;
-  background-size: cover;
+  height: 380px;
 }
 
 h1 {
