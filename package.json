@@ -2,5 +2,8 @@
   "dependencies": {
     "puppeteer": "^23.6.0",
     "xlsx": "^0.18.5"
+  },
+  "overrides": {
+    "tar-fs": "^3.1.0"
   }
 }
