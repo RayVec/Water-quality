@@ -192,17 +192,17 @@
         Discover the results of Whole Communities-Whole Health's latest water testing endeavors in your house and neighborhood. By prioritizing waterquality, we foster a healthier environment and a more resilient community.
       </p>
     </div>
-    <article id="toc">
+    <article id="toc" data-page="toc">
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">1</span>
+            <span class="number" data-page-number>1</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <h1>Table Of Contents</h1>
         <div style="padding: 0 16px; margin-bottom: 28px">
           <div class="reminder">
@@ -238,44 +238,44 @@
           </div>
         </div>
         <div style="padding: 0 16px; margin-bottom: 28px" class="headings">
-          <div class="heading1">
+          <div class="heading1" data-toc-entry="page2">
             <div class="title">
               <a href="#page2">1. Test Results Overview</a>
             </div>
-            <div class="page">2</div>
+            <div class="page" data-toc-page>2</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="your-water-quality">
             <div class="title">
               <a href="#your-water-quality">Your water quality</a>
             </div>
-            <div class="page">2</div>
+            <div class="page" data-toc-page>2</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="notice">
             <div class="title">
               <a href="#notice">Important note</a>
             </div>
-            <div class="page">2</div>
+            <div class="page" data-toc-page>2</div>
           </div>
-          <div class="heading1">
+          <div class="heading1" data-toc-entry="section2">
             <div class="title">
               <a href="#section2">2. Detailed Test Results</a>
             </div>
-            <div class="page">2</div>
+            <div class="page" data-toc-page>2</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-1">
             <div class="title">
               <a href="#section2-1">Glossary</a>
             </div>
-            <div class="page">2</div>
+            <div class="page" data-toc-page>2</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-2">
             <div class="title">
               <a href="#section2-2">WCWH results of {{ display_parameters|length }} measures</a>
             </div>
-            <div class="page">3</div>
+            <div class="page" data-toc-page>3</div>
           </div>
           {% if 'Disinfectant' in display_parameters %}
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-2-2">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-2">
                 {% if Disinfectant_Source == 'Chlorine' %}
@@ -285,134 +285,134 @@
                     {% endif %}
                 </a>
             </div>
-            <div class="page">3</div>
+            <div class="page" data-toc-page>3</div>
           </div>
           {% endif %}
           {% if 'Lead' in display_parameters %}
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-2-3">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-3">Lead</a>
             </div>
-            <div class="page">4</div>
+            <div class="page" data-toc-page>4</div>
           </div>
           {% endif %}
           {% if 'Nitrate' in display_parameters %}
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-2-4">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-4">Nitrate</a>
             </div>
-            <div class="page">4</div>
+            <div class="page" data-toc-page>4</div>
           </div>
           {% endif %}
           {% if 'Nitrite' in display_parameters %}
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-2-5">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-5">Nitrite</a>
             </div>
-            <div class="page">5</div>
+            <div class="page" data-toc-page>5</div>
           </div>
           {% endif %}
           {% if 'Ammonia' in display_parameters %}
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-2-6">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-6">Ammonia</a>
             </div>
-            <div class="page">5</div>
+            <div class="page" data-toc-page>5</div>
           </div>
           {% endif %}
           {% if 'Bacteria' in display_parameters %}
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-2-7">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-7">Bacteria</a>
             </div>
-            <div class="page">5</div>
+            <div class="page" data-toc-page>5</div>
           </div>
           {% endif %}
           {% if 'Turbidity' in display_parameters %}
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-2-8">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-8">Turbidity</a>
             </div>
-            <div class="page">5</div>
+            <div class="page" data-toc-page>5</div>
           </div>
           {% endif %}
           {% if 'pH' in display_parameters %}
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-2-9">
             <div class="title" style="margin-left: 30px">
               <a href="#section2-2-9">pH</a>
             </div>
-            <div class="page">6</div>
+            <div class="page" data-toc-page>6</div>
           </div>
           {% endif %}
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section2-3">
             <div class="title">
               <a href="#section2-3">Your water utility's annual report</a>
             </div>
-            <div class="page">6</div>
+            <div class="page" data-toc-page>6</div>
           </div>
-          <div class="heading1">
+          <div class="heading1" data-toc-entry="section3">
             <div class="title">
               <a href="#section3">3. Concerns and questions</a>
             </div>
-            <div class="page">7</div>
+            <div class="page" data-toc-page>7</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section3-1">
             <div class="title">
               <a href="#section3-1">Stay aware of your water quality</a>
             </div>
-            <div class="page">7</div>
+            <div class="page" data-toc-page>7</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section3-2">
             <div class="title">
               <a href="#section3-2">Temporary solutions</a>
             </div>
-            <div class="page">7</div>
+            <div class="page" data-toc-page>7</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section3-3">
             <div class="title">
               <a href="#section3-3">Report your concern</a>
             </div>
-            <div class="page">7</div>
+            <div class="page" data-toc-page>7</div>
           </div>
-          <div class="heading1">
+          <div class="heading1" data-toc-entry="section4">
             <div class="title">
               <a href="#section4">4. Learn About Your Report</a>
             </div>
-            <div class="page">8</div>
+            <div class="page" data-toc-page>8</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section4-1">
             <div class="title">
               <a href="#section4-1">The test is a spot check</a>
             </div>
-            <div class="page">8</div>
+            <div class="page" data-toc-page>8</div>
           </div>
-          <!-- <div class="heading2">
+          <!-- <div class="heading2" data-toc-entry="section4-2">
             <div class="title">
               <a href="#section4-2">WCWH sampling scope</a>
             </div>
-            <div class="page">8</div>
+            <div class="page" data-toc-page>8</div>
           </div> -->
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section4-3">
             <div class="title">
               <a href="#section4-3"
                 >Distribution of WCWH water samples and their water utilities</a
               >
             </div>
-            <div class="page">9</div>
+            <div class="page" data-toc-page>9</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section4-4">
             <div class="title">
               <a href="#section4-4">What does "water quality" mean?</a>
             </div>
-            <div class="page">9</div>
+            <div class="page" data-toc-page>9</div>
           </div>
-          <div class="heading2">
+          <div class="heading2" data-toc-entry="section4-5">
             <div class="title">
               <a href="#section4-5"
                 >What can affect the water quality in your home?</a
               >
             </div>
-            <div class="page">10</div>
+            <div class="page" data-toc-page>10</div>
           </div>
          
         </div>
@@ -423,23 +423,23 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">1</span>
+            <span class="number" data-page-number>1</span>
           </div>
         </div>
       </div>
     </article>
 
-    <article id="page2">
+    <article id="page2" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">2</span>
+            <span class="number" data-page-number>2</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div class="chapter-title">
             <div class="title-divider">
@@ -622,22 +622,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">2</span>
+            <span class="number" data-page-number>2</span>
           </div>
         </div>
       </div>
     </article>  
-    <article id="page3">
+    <article id="page3" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">3</span>
+            <span class="number" data-page-number>3</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div id="notice" class="section">
             <h2><img src="{{ assets_url }}/icons/notice.svg" />Important Note</h2>
@@ -713,22 +713,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">3</span>
+            <span class="number" data-page-number>3</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page4">
+    <article id="page4" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">4</span>
+            <span class="number" data-page-number>4</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div id="section2-2" class="section">
             <h2>
@@ -776,22 +776,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">4</span>
+            <span class="number" data-page-number>4</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page5">
+    <article id="page5" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">6</span>
+            <span class="number" data-page-number>6</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           {% if 'Lead' in display_parameters %}
             {{ parameter_box(
@@ -815,22 +815,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">5</span>
+            <span class="number" data-page-number>5</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page6">
+    <article id="page6" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">6</span>
+            <span class="number" data-page-number>6</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div class="section">
             {% if 'Nitrate' in display_parameters %}
@@ -855,22 +855,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">6</span>
+            <span class="number" data-page-number>6</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page7">
+    <article id="page7" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">7</span>
+            <span class="number" data-page-number>7</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         {% if 'Nitrite' in display_parameters %}
             {{ parameter_box(
                  record, 'Nitrite', 'section2-2-5', 'Nitrite.png',
@@ -889,22 +889,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">7</span>
+            <span class="number" data-page-number>7</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page8">
+    <article id="page8" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">8</span>
+            <span class="number" data-page-number>8</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div class="section"> {% if 'Ammonia' in display_parameters %}
             {{ parameter_box(
@@ -928,22 +928,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">8</span>
+            <span class="number" data-page-number>8</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page9">
+    <article id="page9" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">9</span>
+            <span class="number" data-page-number>9</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div class="section">{% if 'Bacteria' in display_parameters %}
             {{ parameter_box_binary(
@@ -964,22 +964,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">9</span>
+            <span class="number" data-page-number>9</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page10">
+    <article id="page10" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">10</span>
+            <span class="number" data-page-number>10</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="section">
           {% if 'Turbidity' in display_parameters %}
           {{ parameter_box(
@@ -1001,22 +1001,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">10</span>
+            <span class="number" data-page-number>10</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page11">
+    <article id="page11" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">11</span>
+            <span class="number" data-page-number>11</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter"><div class="section">
           {% if 'pH' in display_parameters %}
           {{ parameter_box(
@@ -1041,22 +1041,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">11</span>
+            <span class="number" data-page-number>11</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page12">
+    <article id="page12" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">12</span>
+            <span class="number" data-page-number>12</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div id="section2-3" class="section">
             <h2>
@@ -1173,22 +1173,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">12</span>
+            <span class="number" data-page-number>12</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page13">
+    <article id="page13" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">13</span>
+            <span class="number" data-page-number>13</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div class="box-regular">
             <h3>Use a water filter</h3>
@@ -1339,22 +1339,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">13</span>
+            <span class="number" data-page-number>13</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page14">
+    <article id="page14" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">14</span>
+            <span class="number" data-page-number>14</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div class="section">
             <div class="box-regular">
@@ -1482,22 +1482,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">14</span>
+            <span class="number" data-page-number>14</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page15">
+    <article id="page15" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">15</span>
+            <span class="number" data-page-number>15</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
             <div class="section">
               <p style="margin: 16px 0">As of February 2025, we have collected:</p>
@@ -1531,22 +1531,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">15</span>
+            <span class="number" data-page-number>15</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page16">
+    <article id="page16" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">16</span>
+            <span class="number" data-page-number>16</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div class="section">
             <h3 style="margin-top: 8px">Water Sources</h3>
@@ -1603,22 +1603,22 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">16</span>
+            <span class="number" data-page-number>16</span>
           </div>
         </div>
       </div>
     </article>
-    <article id="page17">
+    <article id="page17" data-page>
       <div class="header">
         <div class="container">
           <div>
-            <span class="number">17</span>
+            <span class="number" data-page-number>17</span>
             <span class="divider">&nbsp;|</span>
           </div>
           <div class="title">Water quality report</div>
         </div>
       </div>
-      <div class="content">
+      <div class="content" data-page-content>
         <div class="chapter">
           <div id="section4-5" class="section">
             <h2>
@@ -1687,7 +1687,7 @@
           <div>
             <span class="divider">|&nbsp;</span>
 
-            <span class="number">17</span>
+            <span class="number" data-page-number>17</span>
           </div>
         </div>
       </div>

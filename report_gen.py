@@ -1,4 +1,5 @@
 import os
+import sys
 from jinja2 import Environment, FileSystemLoader
 import subprocess
 import json
@@ -28,6 +29,11 @@ logging.basicConfig(
 # Loaded once here so module-level constants can come from config.json rather
 # than being duplicated across scripts. main() reuses the same object.
 CONFIG: Dict[str, Any] = settings.load_config()
+
+# The shared width invariant every type's CSS must declare (see
+# docs/multi-type-refactor.md, section 0) — checked by validate(), not chosen
+# per type.
+PAGE_WIDTH_PX = 377
 
 # --- Translation Handling ---
 TRANSLATIONS_FILE = str(settings.REFERENCE_DIR / CONFIG['files']['translations'])
@@ -190,6 +196,7 @@ def create_report_pdf(record: Dict[str, Any], manifest: Dict[str, str]) -> None:
     # `record=record` additionally exposes the whole dict under one name so the
     # parameter macros can look fields up dynamically, e.g. record['Lead_FF'].
     rendered_html = template.render(record, record=record)
+    validate(rendered_html)
     # final_html_content will hold the potentially translated HTML
     final_html_content = rendered_html # Default to original
 
@@ -386,6 +393,13 @@ def generate_custom_css(html_file_path: str, participant_id: str) -> None:
     
 
 # --- HTML post-processing helpers ---
+#
+# Everything below finds its hooks by data-* attribute, never by tag name or
+# class name: class names are a design choice that differs per report type
+# (see docs/multi-type-refactor.md, section 5.2), so the engine cannot rely
+# on `.header .number` or `.heading1` staying the way this design happens to
+# spell them.
+
 def _content_has_meaningful_data(content_node: Optional[BeautifulSoup]) -> bool:
     """Determine if a content node contains meaningful text or media."""
     if not content_node:
@@ -403,65 +417,92 @@ def _content_has_meaningful_data(content_node: Optional[BeautifulSoup]) -> bool:
     return False
 
 
+def validate(html_content: str) -> None:
+    """Fail loudly if the rendered template doesn't satisfy the engine's contract
+    (docs/multi-type-refactor.md, section 5.2). A contract violation means every
+    record would fail the same way, so this exits the whole run rather than
+    logging a per-record error and continuing.
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    pages = soup.find_all(attrs={"data-page": True})
+    if not pages:
+        sys.exit("❌ Template contract violation: no element has a data-page attribute.")
+
+    for page in pages:
+        contents = page.find_all(attrs={"data-page-content": True})
+        if len(contents) != 1:
+            page_id = page.get('id', '<no id>')
+            sys.exit(
+                f"❌ Template contract violation: page '{page_id}' has {len(contents)} "
+                f"data-page-content elements, expected exactly 1."
+            )
+
+    ids_in_document = {el['id'] for el in soup.find_all(id=True)}
+    for entry in soup.find_all(attrs={"data-toc-entry": True}):
+        target = entry.get('data-toc-entry')
+        if target not in ids_in_document:
+            sys.exit(
+                f"❌ Template contract violation: data-toc-entry=\"{target}\" has no matching id in the document."
+            )
+
+    css_path = settings.TEMPLATE_DIR / "report.css"
+    css_content = css_path.read_text(encoding='utf-8')
+    width_match = re.search(r':root\s*\{[^}]*width:\s*(\d+)px', css_content)
+    if not width_match or int(width_match.group(1)) != PAGE_WIDTH_PX:
+        found = width_match.group(1) if width_match else "none"
+        sys.exit(f"❌ Template contract violation: page width is {found}px, expected {PAGE_WIDTH_PX}px.")
+
+
 def remove_empty_pages_and_update_toc(html_content: str) -> str:
     """Remove empty page articles and update page numbering and table of contents."""
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    # Remove empty page articles (skip toc)
-    for article in list(soup.find_all('article')):
-        article_id = article.get('id')
-        if not article_id or article_id == 'toc':
+    # Remove empty pages (skip toc)
+    for page in list(soup.find_all(attrs={"data-page": True})):
+        if page.get('data-page') == 'toc':
             continue
 
-        content = article.find('div', class_='content')
+        content = page.find(attrs={"data-page-content": True})
         if not _content_has_meaningful_data(content):
-            logging.info(f"Removing empty page section: {article_id}")
-            article.decompose()
+            logging.info(f"Removing empty page section: {page.get('id', '<no id>')}")
+            page.decompose()
 
     # Rebuild page ordering and id-to-page mapping
     id_to_page: Dict[str, int] = {}
     page_number = 1
-    for article in soup.find_all('article'):
-        article_id = article.get('id')
-        if not article_id:
-            continue
+    for page in soup.find_all(attrs={"data-page": True}):
+        page_id = page.get('id')
+        if page_id:
+            # Map the page's own id to its page number.
+            id_to_page[page_id] = page_number
 
-        # Map the article's own id to the page number
-        id_to_page[article_id] = page_number
+        # Update every page-number slot on this page (however many there are).
+        for number_el in page.find_all(attrs={"data-page-number": True}):
+            number_el.string = str(page_number)
 
-        # Update header/footer page numbers
-        for number_span in article.select('div.header span.number'):
-            number_span.string = str(page_number)
-
-        # Map all element ids within this article to the page number
-        for element_with_id in article.find_all(id=True):
+        # Map all element ids within this page to the same page number, so
+        # anchors pointing at a heading (not the page itself) resolve too.
+        for element_with_id in page.find_all(id=True):
             id_to_page[element_with_id['id']] = page_number
 
         page_number += 1
 
     # Update table of contents entries based on the new mapping
-    toc_article = soup.find('article', id='toc')
-    if toc_article:
-        headings = toc_article.select('.headings .heading1, .headings .heading2')
-        for heading in list(headings):
-            link = heading.select_one('.title a')
-            page_div = heading.select_one('.page')
-
-            if not link or not page_div:
-                continue
-
-            target = link.get('href', '')
-            if not target.startswith('#'):
-                continue
-
-            target_id = target[1:]
+    toc = soup.find(attrs={"data-page": "toc"})
+    if toc:
+        for entry in list(toc.find_all(attrs={"data-toc-entry": True})):
+            target_id = entry.get('data-toc-entry')
             page_for_target = id_to_page.get(target_id)
 
             if page_for_target is None:
                 logging.info(f"Removing TOC entry without target: {target_id}")
-                heading.decompose()
-            else:
-                page_div.string = str(page_for_target)
+                entry.decompose()
+                continue
+
+            page_slot = entry.find(attrs={"data-toc-page": True})
+            if page_slot:
+                page_slot.string = str(page_for_target)
 
     return str(soup)
 
