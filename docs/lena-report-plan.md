@@ -1,6 +1,8 @@
 # LENA Report 接入方案(Step 5 具体化)
 
 > 对应 [multi-type-refactor.md](multi-type-refactor.md) 里悬而未决的第 5 步——"接入第二种类型"。设计稿已拿到(Figma: `Lena Report`,file key `vATBGxT1nPPmdEfCiIK1k6`,node `620:10810`,Cover + 14 个编号内容页),本文档基于对全部 15 个页面的逐页拆解给出实施计划。
+>
+> **现状:`report_types/lena/` 已在 `feature/lena-report-type` 分支上完成第一版实现**,15 页全部跑通(含双语),验证了第 1 节的结论——`engine/` 全程零改动。仍是未接入真实数据前的模拟版本:第 8 节的模拟数据源已经生效,机构目录(第 5 节)已经填入从 Figma 逐字提取的真实机构信息,图标是自制的占位简笔图标(非 Figma 原始图标导出)。
 
 ## 1. 结论:不变量成立,引擎本身不用改
 

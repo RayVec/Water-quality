@@ -1,0 +1,740 @@
+{#-
+  ============================================================================
+  Shared macros. Page shell (header/content/footer) is copied per-page, not
+  macro'd, matching report_types/water_quality's convention: the wrapping
+  layout differs enough per page (chapter-title vs section-heading, cover vs
+  regular) that a shared macro would need as many parameters as it saves.
+  ============================================================================
+-#}
+
+{% macro stat_card(icon, title, items) -%}
+<div class="stat-card">
+  <div class="stat-card-heading">
+    <img src="{{ assets_url }}/icons/{{ icon }}" />
+    <h3>{{ title }}</h3>
+  </div>
+  <ul>
+    {% for item in items %}<li>{{ item }}</li>{% endfor %}
+  </ul>
+</div>
+{%- endmacro %}
+
+{#- 4-segment percentile gauge. bands preserves config.json's key order
+    (low, lowAverage, highAverage, high), so segment position === tier order. -#}
+{% macro percentile_gauge(percentile, percentile_display, tier_key, bands, least_label, most_label) -%}
+<div class="gauge-percentile-label">{{ percentile_display }}</div>
+<div class="gauge-track">
+  {% for key, band in bands.items() %}
+  <div class="gauge-segment" style="left: {{ loop.index0 * 25 }}%; background: {{ band.colorActive if key == tier_key else band.colorMuted }};"></div>
+  {% endfor %}
+  <div class="gauge-marker" style="left: {{ percentile }}%;"></div>
+</div>
+<div class="gauge-endpoints">
+  <div>{{ least_label }}</div>
+  <div>{{ most_label }}</div>
+</div>
+{%- endmacro %}
+
+{% macro audio_bar(cat, value) -%}
+<div class="audio-bar-row">
+  <div class="audio-bar-track">
+    <div class="audio-bar-fill" style="height: {{ value }}%; background: {{ cat.color }};"></div>
+  </div>
+  <div class="audio-bar-label">
+    <h3>{{ cat.label }}</h3>
+    <p>{{ cat.description }}</p>
+  </div>
+</div>
+{%- endmacro %}
+
+{#- Resource-directory organization card. locations covers orgs with more
+    than one address/phone (e.g. CommUnityCare); links is the Home Page /
+    Register Here / etc. list every org has at least one of. -#}
+{% macro org_card(org) -%}
+<div class="org-card">
+  <div class="org-card-name">{{ org.name }}</div>
+  <div class="org-card-description">{{ org.description }}</div>
+  {% if org.tags %}
+  <ul class="org-tag-list">
+    {% for tag in org.tags %}<li><img src="{{ assets_url }}/icons/tag.svg" />{{ tag }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  <div class="org-contact">
+    {% if org.phone %}<div class="org-contact-row"><img src="{{ assets_url }}/icons/phone.svg" />{{ org.phone }}</div>{% endif %}
+    {% if org.textPhone %}<div class="org-contact-row"><img src="{{ assets_url }}/icons/phone.svg" />Text {{ org.textPhone }}</div>{% endif %}
+    {% if org.email %}<div class="org-contact-row"><img src="{{ assets_url }}/icons/mail.svg" /><a href="mailto:{{ org.email }}">{{ org.email }}</a></div>{% endif %}
+    {% if org.address %}<div class="org-contact-row"><img src="{{ assets_url }}/icons/pin.svg" />{{ org.address }}</div>{% endif %}
+    {% for loc in org.locations|default([]) %}
+    <div class="org-contact-sublocation">
+      <div class="org-contact-sublocation-label">{{ loc.label }}</div>
+      {% if loc.phone %}<div class="org-contact-row"><img src="{{ assets_url }}/icons/phone.svg" />{{ loc.phone }}</div>{% endif %}
+      {% if loc.address %}<div class="org-contact-row"><img src="{{ assets_url }}/icons/pin.svg" />{{ loc.address }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    {% for link in org.links|default([]) %}
+    <div class="org-contact-row"><img src="{{ assets_url }}/icons/globe.svg" /><a href="{{ link.url }}">{{ link.label }}</a></div>
+    {% endfor %}
+  </div>
+</div>
+{%- endmacro %}
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="{{ assets_url }}/fonts/inter.css" />
+    <link href="./report.css" rel="stylesheet" />
+    <title>LENA Report</title>
+    <meta name="description" content="LENA Report" />
+  </head>
+
+  <body style="margin: 0">
+    <div id="cover">
+      <div class="cover-header">
+        <span>Produced by WCWH</span>
+        <img src="{{ assets_url }}/icons/wcwh-cover.svg" />
+      </div>
+      <div class="report-title">LENA Report</div>
+      <div class="report-subtitle">(Language ENvironment Analysis)</div>
+      <p class="cover-intro">
+        Explore insights into your child's language and audio environment based on their LENA recording. This report highlights the impact of speech, sounds, and silence in your home, supporting positive language development.
+      </p>
+      <div class="cover-illustration"></div>
+    </div>
+
+    <article id="toc" data-page="toc">
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <h1>Table Of Contents</h1>
+        <div style="padding: 0 16px; margin-bottom: 28px" class="reminder">
+          <h3><img src="{{ assets_url }}/icons/click.svg" />Clickable report</h3>
+          <p style="width: 345px">
+            You can click on any links and catalogs in this report. They will take you to websites or other pages in the report.
+          </p>
+        </div>
+        <div
+          class="box-info"
+          style="padding: 0; margin: 0 16px 28px; overflow: hidden; display: flex; height: 100px;"
+        >
+          <div style="width: 88px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+            <img src="{{ assets_url }}/icons/video-play.svg" style="width: 40px;" />
+          </div>
+          <div style="padding: 12px 12px 12px 0">
+            Click here to watch our video guide. It will help you understand and use this report better.
+          </div>
+        </div>
+        <div style="padding: 0 16px" class="headings">
+          <div class="heading1" data-toc-entry="page2">
+            <div class="title"><a href="#page2">1. Overview</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading1" data-toc-entry="page3">
+            <div class="title"><a href="#page3">2. Detailed Results</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading2" data-toc-entry="results">
+            <div class="title"><a href="#results">Results</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading2" data-toc-entry="audio-environment">
+            <div class="title"><a href="#audio-environment">Audio Environment</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading1" data-toc-entry="page6">
+            <div class="title"><a href="#page6">3. Learn About Your Report</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading2" data-toc-entry="lena-background">
+            <div class="title"><a href="#lena-background">LENA Background</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading2" data-toc-entry="database-demographics">
+            <div class="title"><a href="#database-demographics">LENA Database</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading1" data-toc-entry="page8">
+            <div class="title"><a href="#page8">4. Resources</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading2" data-toc-entry="resources-contact">
+            <div class="title"><a href="#resources-contact">Questions and Concerns</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading2" data-toc-entry="resources-parenting">
+            <div class="title"><a href="#resources-parenting">Parenting Classes &amp; Support</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading2" data-toc-entry="resources-education">
+            <div class="title"><a href="#resources-education">Early Education</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading2" data-toc-entry="resources-healthcare">
+            <div class="title"><a href="#resources-healthcare">Access to Health Care</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+        </div>
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page2" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <div class="chapter-title">
+          <div class="title-divider">
+            <div class="divider"></div>
+            <span class="section-number">1</span>
+            <div class="divider"></div>
+          </div>
+          <h1 class="chapter-heading">Overview</h1>
+        </div>
+
+        <div class="section-heading">
+          <img src="{{ assets_url }}/icons/report-data.svg" />
+          <h2>LENA Results</h2>
+        </div>
+        <div class="box-regular child-info-card">
+          <h3>Child Name: {{ child_name }}</h3>
+          <div class="child-info-row"><img src="{{ assets_url }}/icons/gift.svg" />Birthday: {{ birthday }}</div>
+          <div class="child-info-row"><img src="{{ assets_url }}/icons/child-care.svg" />Age at Recording: {{ age_at_recording }}</div>
+          <div class="child-info-row"><img src="{{ assets_url }}/icons/calendar.svg" />Date of Recording: {{ recording_date_display }}</div>
+          <div class="child-info-row"><img src="{{ assets_url }}/icons/clock.svg" />Duration of Recording: {{ recording_duration_hours }} hours</div>
+        </div>
+
+        {{ stat_card('child-hat.svg', 'Child Vocalizations', [
+          'Total words/sounds: ' ~ child_vocalizations_display,
+          'Most Active Time: ' ~ most_active_time_vocalizations,
+          'Relative Score: ' ~ vocalizations_percentile_display,
+          'Percentile Key: ' ~ vocalizations_percentile_label,
+        ]) }}
+        {{ stat_card('conversation.svg', 'Conversational Turns', [
+          'Total turns: ' ~ conversational_turns_display,
+          'Most Active Time: ' ~ most_active_time_turns,
+          'Relative Score: ' ~ turns_percentile_display,
+          'Percentile Key: ' ~ turns_percentile_label,
+        ]) }}
+        {{ stat_card('cadence.svg', 'Vocal Productivity', [
+          'Relative Score: ' ~ productivity_percentile_display,
+          'Percentile Key: ' ~ productivity_percentile_label,
+        ]) }}
+
+        <div class="section-heading">
+          <img src="{{ assets_url }}/icons/exclamation.svg" />
+          <h2>Important Note</h2>
+        </div>
+        <div class="box-regular">
+          <p style="margin-bottom: 12px">This report is based on a single day of recording, so it may not fully represent your family's typical language environment.</p>
+          <p style="margin-bottom: 12px">Research shows that when parents speak more to their children, it has positive effects on the child's vocabulary and language development.</p>
+          <p>This report contains <a href="#database-demographics">information</a> about how your LENA recording compares to LENA recordings from other children and households that may or may not be like your own.</p>
+        </div>
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page3" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <div class="chapter-title">
+          <div class="title-divider">
+            <div class="divider"></div>
+            <span class="section-number">2</span>
+            <div class="divider"></div>
+          </div>
+          <h1 class="chapter-heading">Detailed Results</h1>
+        </div>
+
+        <div id="results" class="section-heading">
+          <img src="{{ assets_url }}/icons/report-data.svg" />
+          <h2>Results</h2>
+        </div>
+        <div class="box-regular">
+          <p style="margin-bottom: 16px">LENA automatically detects speech in both English and Spanish, words in both languages are counted by LENA.</p>
+          <div class="result-stat-line">
+            <div><div class="stat-number">{{ adult_words_display }}</div><div class="stat-label">Counts of Adult Words</div></div>
+          </div>
+          <div class="result-stat-line">
+            <div><div class="stat-number">{{ child_vocalizations_display }}</div><div class="stat-label">Counts of Child Vocalizations</div></div>
+          </div>
+          <div class="result-stat-line">
+            <div><div class="stat-number">{{ conversational_turns_display }}</div><div class="stat-label">Counts of Conversational Turns</div></div>
+          </div>
+        </div>
+        <div class="box-regular">
+          <h3>Percentiles Key</h3>
+          <p style="margin-bottom: 12px">Percentiles compare your results to other parents and children who have used LENA.</p>
+          <ul class="percentile-legend">
+            {% for key, band in percentile_bands.items() %}
+            <li><span class="dot" style="background: {{ band.colorActive }};"></span>{{ band.label }} ({{ band.min }}-{{ band.max }})</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page4" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <div class="section-heading">
+          <img src="{{ assets_url }}/icons/report-data.svg" />
+          <h2>Results</h2>
+        </div>
+        <div class="box-regular">
+          <div class="result-metric">
+            <div class="result-metric-header">
+              <img src="{{ assets_url }}/icons/child-hat.svg" />
+              <h3>Child Vocalizations (Sounds)</h3>
+            </div>
+            <p style="margin-bottom: 8px">The number of child vocalizations -or sounds- made by your child, including both words and "pre-word" sounds (like babbles, noises, and single sounds)</p>
+            <p class="result-count"><strong>{{ child_vocalizations_display }}</strong> Counts of Child Vocalizations</p>
+            <p class="result-interpretation">{{ vocalizations_interpretation }}</p>
+            {{ percentile_gauge(vocalizations_percentile, vocalizations_percentile_display, vocalizations_percentile_key, percentile_bands, 'Least Vocalizations', 'Most Vocalizations') }}
+          </div>
+          <div class="result-metric">
+            <div class="result-metric-header">
+              <img src="{{ assets_url }}/icons/conversation.svg" />
+              <h3>Conversational Turns</h3>
+            </div>
+            <p style="margin-bottom: 8px">When a child and an adult talk together, going back-and-forth in the conversation.</p>
+            <p class="result-count"><strong>{{ conversational_turns_display }}</strong> Counts of Conversational Turns</p>
+            <p class="result-interpretation">{{ turns_interpretation }}</p>
+            {{ percentile_gauge(turns_percentile, turns_percentile_display, turns_percentile_key, percentile_bands, 'Least Turns', 'Most Turns') }}
+          </div>
+          <div class="result-metric">
+            <div class="result-metric-header">
+              <img src="{{ assets_url }}/icons/cadence.svg" />
+              <h3>Vocal Productivity</h3>
+            </div>
+            <p style="margin-bottom: 8px">The length and variety of a child's speech while babbling or talking with an adult, reflecting language development using the average number of syllables per utterance.</p>
+            <p class="result-interpretation">{{ productivity_interpretation }}</p>
+            {{ percentile_gauge(productivity_percentile, productivity_percentile_display, productivity_percentile_key, percentile_bands, 'Least Productivity', 'Most Productivity') }}
+          </div>
+        </div>
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page5" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <div id="audio-environment" class="section-heading">
+          <img src="{{ assets_url }}/icons/headphones.svg" />
+          <h2>Audio Environment</h2>
+        </div>
+        <div class="box-regular">
+          <p style="margin-bottom: 12px">LENA measured the natural audio environment of your child and categorized the different types of sounds that your child could hear, and for how long they were exposed to each one.</p>
+          <p style="margin-bottom: 12px">These findings from the day of recording may not be accurate or representative of your child's everyday environment.</p>
+          <div class="dotted-line" style="margin-bottom: 12px"></div>
+          <p style="margin-bottom: 12px">The different types of sound it measured include:</p>
+          {% for cat in audio_categories %}
+          {{ audio_bar(cat, audio_environment[cat.key]) }}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page6" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <div class="chapter-title">
+          <div class="title-divider">
+            <div class="divider"></div>
+            <span class="section-number">3</span>
+            <div class="divider"></div>
+          </div>
+          <h1 class="chapter-heading">Learn About Your Report</h1>
+        </div>
+
+        <div id="lena-background" class="section-heading">
+          <img src="{{ assets_url }}/icons/lightbulb.svg" />
+          <h2>LENA Background</h2>
+        </div>
+        <div class="box-regular">
+          <p style="margin-bottom: 16px">This report describes the language and audio environment, which includes sounds, silence, speech, and other noises that the child can hear in the home environment of your child based on your LENA recording.</p>
+          <img src="{{ assets_url }}/images/brain-development-diagram.png" style="width: 100%; display: block;" />
+        </div>
+
+        <div class="section-heading">
+          <img src="{{ assets_url }}/icons/database.svg" />
+          <h2>LENA Database</h2>
+        </div>
+        <div class="box-regular">
+          <h3>What is LENA Database</h3>
+          <p style="margin-bottom: 12px">The LENA database is a group of 329 children's recordings collected by LENA to establish the norms for everyday language in young families.</p>
+          <p style="margin-bottom: 12px">WCWH uses the database to compare your child's recording to recordings in the database to identify your child's percentiles.</p>
+          <div class="box-notice" style="margin-bottom: 12px">
+            <div class="child-info-row"><img src="{{ assets_url }}/icons/clock.svg" />Recording Hours: 32,000+ hours</div>
+            <div class="child-info-row"><img src="{{ assets_url }}/icons/child-care.svg" />Participants: 329 children</div>
+            <div class="child-info-row"><img src="{{ assets_url }}/icons/child-care.svg" />Age Range: 2 to 48 months</div>
+            <div class="child-info-row" style="margin-bottom: 0"><img src="{{ assets_url }}/icons/gift.svg" />Collection Context: Natural home environments</div>
+          </div>
+          <h3>Whose Data is Included</h3>
+          <div class="box-info" style="margin-bottom: 12px">
+            <p>The LENA database mostly represents white (66%), English-speaking children from the US. Therefore, your percentiles may not fully reflect the norms for multilingual families or families of color.</p>
+          </div>
+          <p>The LENA automatically detects speech in both English and Spanish, but the language and demographic makeup of the database can impact how well the results represent your child's experience.</p>
+        </div>
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page7" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <div id="database-demographics" class="box-regular">
+          <img src="{{ assets_url }}/images/database-demographics-charts.png" style="width: 100%; display: block;" />
+        </div>
+
+        <div class="section-heading">
+          <img src="{{ assets_url }}/icons/checkmark.svg" />
+          <h2>Support Your Child's Language Growth</h2>
+        </div>
+        <div class="box-info" style="margin-bottom: 16px">
+          <p>Ways you can do to support your child's language growth, improving their vocabulary/reading skills, brain structure/function, assessment scores, and social-emotional development.</p>
+        </div>
+        <div class="box-regular">
+          <h3>14 Talking Tips developed by LENA</h3>
+          <ol style="margin: 0; padding-left: 20px; font-size: 16px;">
+            <li><strong>Talk about</strong> what you're doing</li>
+            <li><strong>Comment on</strong> what they see or do</li>
+            <li><strong>Name things</strong> that interest them</li>
+            <li><strong>Get down to their level</strong>: face to face</li>
+            <li>Touch, hug, hold</li>
+            <li><strong>Tune in and respond</strong> to what they notice</li>
+            <li>Wait for their response</li>
+            <li><strong>Imitate them</strong>, and add words</li>
+            <li>Make faces, use gestures</li>
+            <li><strong>Take turns</strong> – don't do all the talking</li>
+            <li><strong>Repeat and add</strong> on their words</li>
+            <li><strong>Follow their lead</strong>, do what interests them</li>
+            <li><strong>Encourage them</strong>, be positive</li>
+            <li><strong>Be silly!</strong> Relax and have fun!</li>
+          </ol>
+        </div>
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page8" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <div class="chapter-title">
+          <div class="title-divider">
+            <div class="divider"></div>
+            <span class="section-number">4</span>
+            <div class="divider"></div>
+          </div>
+          <h1 class="chapter-heading">Resources</h1>
+        </div>
+
+        <div class="box-notice" style="margin-bottom: 16px">
+          <p>We understand it can be tricky to get a full 24-hour recording. Remember to reach out to our study staff to troubleshoot with LENA use-and-wear. If you want to try again, please contact us to schedule another LENA drop-off.</p>
+        </div>
+
+        <div id="resources-contact" class="section-heading" style="margin-top: 0">
+          <h2>Questions and Concerns</h2>
+        </div>
+        <div class="org-card">
+          <div class="org-card-name">{{ contact_section.name }}</div>
+          <div class="org-card-description">{{ contact_section.description }}</div>
+          <div class="org-contact">
+            <div class="org-contact-row"><img src="{{ assets_url }}/icons/phone.svg" />{{ contact_section.phone }}</div>
+            <div class="org-contact-row"><img src="{{ assets_url }}/icons/mail.svg" /><a href="mailto:{{ contact_section.email }}">{{ contact_section.email }}</a></div>
+          </div>
+        </div>
+
+        <div id="resources-parenting" class="section-heading">
+          <h2>Parenting Classes &amp; Support</h2>
+        </div>
+        {{ org_card(resource_directory[0].organizations[0]) }}
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page9" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        {{ org_card(resource_directory[0].organizations[1]) }}
+        {{ org_card(resource_directory[0].organizations[2]) }}
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page10" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        {{ org_card(resource_directory[0].organizations[3]) }}
+        {{ org_card(resource_directory[0].organizations[4]) }}
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page11" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        {{ org_card(resource_directory[0].organizations[5]) }}
+        {{ org_card(resource_directory[0].organizations[6]) }}
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page12" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <div id="resources-education" class="category-heading">
+          <img src="{{ assets_url }}/icons/book.svg" />
+          <h2>{{ resource_directory[1].category }}</h2>
+        </div>
+        {{ org_card(resource_directory[1].organizations[0]) }}
+        {{ org_card(resource_directory[1].organizations[1]) }}
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page13" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        <div id="resources-healthcare" class="category-heading">
+          <img src="{{ assets_url }}/icons/heart.svg" />
+          <h2>{{ resource_directory[2].category }}</h2>
+        </div>
+        {{ org_card(resource_directory[2].organizations[0]) }}
+        {{ org_card(resource_directory[2].organizations[1]) }}
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article id="page14" data-page>
+      <div class="header">
+        <div class="container">
+          <div>
+            <span class="number" data-page-number></span>
+            <span class="divider">&nbsp;|</span>
+          </div>
+          <div class="title">Lena report</div>
+        </div>
+      </div>
+      <div class="content" data-page-content>
+        {{ org_card(resource_directory[2].organizations[2]) }}
+        {{ org_card(resource_directory[2].organizations[3]) }}
+      </div>
+      <div class="header">
+        <div class="container">
+          <div class="title"><a href="#toc">Return to table of contents</a></div>
+          <div>
+            <span class="divider">|&nbsp;</span>
+            <span class="number" data-page-number></span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+</html>

@@ -1,0 +1,186 @@
+{
+  "percentileBands": {
+    "low": { "min": 1, "max": 24, "label": "Low", "colorMuted": "rgba(109,54,54,0.2)", "colorActive": "#6d3636" },
+    "lowAverage": { "min": 25, "max": 49, "label": "Low Average", "colorMuted": "#eac7aa", "colorActive": "#bf5700" },
+    "highAverage": { "min": 50, "max": 74, "label": "High Average", "colorMuted": "rgba(247,179,43,0.2)", "colorActive": "#f7b32b" },
+    "high": { "min": 75, "max": 99, "label": "High", "colorMuted": "#e3eacb", "colorActive": "#abbf63" }
+  },
+  "audioEnvironment": {
+    "categories": [
+      { "key": "Noise", "label": "Noise", "color": "#6d3636", "description": "Bumps, jiggles, rattles, and sounds not from a human or electronics" },
+      { "key": "SilenceBackground", "label": "Silence / Background", "color": "#bf5700", "description": "Silence and very quiet/faint background sounds" },
+      { "key": "Overlap", "label": "Overlap", "color": "#f7b32b", "description": "Speech sounds and/or noises occurring at the same time" },
+      { "key": "TvElectronic", "label": "TV/Electronic Sounds", "color": "#0531ab", "description": "Sounds coming from a TV, speaker, or another electronic source" },
+      { "key": "Speech", "label": "Speech", "color": "#abbf63", "description": "Adult and child voices not near and clear to the child (with Overlap)" },
+      { "key": "DistantNoise", "label": "Distant Noise", "color": "#04bfbf", "description": "Adult and child voices not near and clear to the child (with Overlap)" }
+    ]
+  },
+  "files": {
+    "translations": "translations.xlsx",
+    "translationColumns": {
+      "english": "English",
+      "spanish": "Spanish"
+    }
+  },
+  "output": {
+    "filename": "{prefix}.{id}.{date}.pdf",
+    "prefix": {
+      "English": "LENA",
+      "Spanish": "LENA-ES"
+    },
+    "dateFormat": "%Y.%m.%d"
+  },
+  "contactSection": {
+    "name": "Contact WCWH",
+    "description": "As a participant in the WCWH study, our doors are always open for you. Feel free to reach out if you have any questions or concerns about your biological aging report.",
+    "phone": "512-284-3168",
+    "email": "wcwhcommunity@austin.utexas.edu"
+  },
+  "resourceDirectory": [
+    {
+      "category": "Parenting Classes & Support",
+      "organizations": [
+        {
+          "name": "Any Baby Can",
+          "description": "Programs and services to help families and new moms build stability, develop skills, and reach their full potential.",
+          "tags": ["Adults", "Group Session"],
+          "phone": "(512) 454-3743",
+          "email": "info@anybabycan.org",
+          "address": null,
+          "links": [{ "label": "Home Page", "url": "https://anybabycan.org/services/parenting-classes/" }]
+        },
+        {
+          "name": "AVANCE",
+          "description": "AVANCE walks alongside children and families to achieve social and economic justice.",
+          "tags": ["Adults", "Parent-child class", "Free parent class", "All in Spanish"],
+          "phone": "(512) 414-6172",
+          "email": null,
+          "address": "3100 E 4th St Room 114, Austin, TX 78702",
+          "links": [{ "label": "Home Page", "url": "https://avanceaustin.org/programs/programs/" }]
+        },
+        {
+          "name": "Bastrop Family Connects",
+          "description": "Family Connects Texas provides in-home support for new mothers and their families. Visiting nurses are trained to answer any questions and connect parents with the support they need.",
+          "tags": ["Breastfeeding and parent support", "Newborn & maternal health screenings", "Free in-home nurse visits for newborn"],
+          "phone": "(512) 308-3913",
+          "email": "bastropfamilyconnects@lscctx.org",
+          "address": null,
+          "links": [{ "label": "Home Page", "url": "https://www.findhelp.org/family-connects---bastrop-county--bastrop-tx--family-connects---bastrop-county%253A-newborn-postpartum-nurse-visit/5098917412864000?postal=78602" }]
+        },
+        {
+          "name": "Bastrop Pregnancy Resource Center",
+          "description": "Bastrop Pregnancy Resource Center is a one-stop pregnancy center, offering early pregnancy confirmation, ultrasounds, and abortion information. We provide non-judgmental and confidential support for pregnancy-related decisions.",
+          "tags": ["Adults", "Parenting classes & abortion healing support", "Coaching on pregnancy options", "Free pregnancy tests & limited ultrasounds"],
+          "phone": "(512) 409-3400",
+          "textPhone": "(512) 593-1949",
+          "email": null,
+          "locations": [
+            { "label": "Clinic Location", "address": "150 Settlement Dr. Suite B-2, Bastrop, TX 78602" },
+            { "label": "Center Location", "address": "125 Lower Red Rock Road, Bastrop, TX 78602" }
+          ],
+          "links": [{ "label": "Home Page", "url": "https://www.bastropprc.org/" }]
+        },
+        {
+          "name": "Lantern",
+          "description": "Lantern is a national nonprofit dedicated to providing families with essential information for raising kids, from pregnancy through the preteen years.",
+          "tags": ["Adults", "Covers pregnancy through age 8", "Customized by child's age & location", "Free parenting tips by text"],
+          "phone": "(303) 433-6200",
+          "email": "contact@mylantern.org",
+          "address": null,
+          "links": [
+            { "label": "Home Page", "url": "https://mylantern.org/" },
+            { "label": "Register Here", "url": "https://mylantern.org/sign-up/" }
+          ]
+        },
+        {
+          "name": "Maternal Infant Outreach Program (MIOP)",
+          "description": "MIOP's team consists of DSHS Certified Community Health Workers (CHWs) with direct lived experience who provide psychosocial support to Black and African American women in Travis County.",
+          "tags": ["Peer support for Black and African American women", "Birth & labor support", "Home visits, advocacy, & health education"],
+          "phone": "(512) 972-5059",
+          "email": null,
+          "address": null,
+          "links": [{ "label": "Home Page", "url": "https://www.austintexas.gov/department/miop" }]
+        },
+        {
+          "name": "United Way Family Resources",
+          "description": "United Way for Greater Austin focuses on increasing the availability of high-quality early care and education and access to pivotal resources to dismantle economic barriers in Central Texas.",
+          "tags": ["Parenting", "Child development", "Covers pregnancy through kindergarten"],
+          "phone": null,
+          "email": null,
+          "address": null,
+          "links": [{ "label": "Home Page", "url": "https://unitedwayaustin.org/family-resources/" }]
+        }
+      ]
+    },
+    {
+      "category": "Early Education",
+      "organizations": [
+        {
+          "name": "Books Beginning at Birth",
+          "description": "Provide children and their families access to books and resources to support the development of early literacy skills and foster a love of reading.",
+          "tags": ["Young children and families", "Free digital books for ages 0–4", "Free home-delivered print books in some areas"],
+          "phone": "(888) 952-9572",
+          "email": "ask@b3tx.org",
+          "address": null,
+          "links": [{ "label": "Home Page", "url": "https://b3tx.org/" }]
+        },
+        {
+          "name": "BookSpring",
+          "description": "BookSpring provides free books and reading resources to help families build early literacy and support children's language development at home.",
+          "tags": ["Families with children ages 0-5", "Supports early brain development", "Free"],
+          "phone": "(512) 472-1791",
+          "email": "info@bookspring.org",
+          "address": "1807 W. Slaughter Lane, Bldg #1, Austin, TX 78748-6214",
+          "links": [{ "label": "Home Page", "url": "https://bookspring.org/en/" }]
+        }
+      ]
+    },
+    {
+      "category": "Access to Health Care",
+      "organizations": [
+        {
+          "name": "CommUnityCare",
+          "description": "Offer walk-in primary care, behavioral health, dental, women's health, and pharmacy services to uninsured/under-insured residents of Travis County.",
+          "tags": ["Travis County Residents", "Offers financial assistance & sliding fee scale"],
+          "locations": [
+            { "label": "Del Valle Health Center", "phone": "(512) 978-9760", "address": "7050 Elroy Rd, Del Valle, TX 78617" },
+            { "label": "Mobile Clinic in Creedmoor", "phone": "(512) 978-8760", "address": "12511 FM 1625, Creedmoor, TX 78610" }
+          ],
+          "links": [
+            { "label": "Home Page", "url": "https://communitycaretx.org/" },
+            { "label": "Financial assistance & sliding fee scale", "url": "https://communitycaretx.org/paying-for-your-care/" }
+          ]
+        },
+        {
+          "name": "Community Health Centers of South Central Texas",
+          "description": "Provide quality healthcare and various medical, dental, and mental health.",
+          "tags": ["Adults", "Child", "Care for all ages & income levels"],
+          "phone": "(800) 343-1577",
+          "email": "customercare@chcsct.com",
+          "address": null,
+          "links": [{ "label": "Home Page", "url": "https://communityhealthtx.com/" }]
+        },
+        {
+          "name": "Lirios Pediatrics",
+          "description": "Provide all primary care services for child, including well checks, care for illness and injury, care for chronic problems, and hospital follow-up.",
+          "tags": ["Uninsured children in Central Texas", "Session fee are based on income and household size"],
+          "phone": "(512) 502-5205",
+          "email": null,
+          "address": "4201 South Congress Ave Ste 202, Austin, TX 78745",
+          "links": [{ "label": "Home Page", "url": "https://www.liriospediatrics.org/" }]
+        },
+        {
+          "name": "UT Austin School of Nursing Wellness Centers",
+          "description": "UT Austin School of Nursing provide health care services in two clinics: Children's Wellness Center (CWC) and Family Wellness Center (FWC), where nurse practitioners provide primary care and manage acute and chronic conditions.",
+          "tags": ["Family", "Children", "Del Valle clinic & on-campus location", "Services by nurse practitioners & students"],
+          "email": "utsoncwc@nursing.utexas.edu",
+          "locations": [
+            { "label": "CWC", "phone": "(512) 386-3335", "address": "5301 Ross Road, Building H, Del Valle, TX 78617" },
+            { "label": "FWC", "phone": "(512) 232-3900", "address": "2901 North IH-35, Suite 1.301, Austin, TX 78722" }
+          ],
+          "links": [{ "label": "Home Page", "url": "https://nursing.utexas.edu/wellness-centers" }]
+        }
+      ]
+    }
+  ]
+}
