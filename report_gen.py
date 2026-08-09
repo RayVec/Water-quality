@@ -2,11 +2,9 @@ import os
 from jinja2 import Environment, FileSystemLoader
 import subprocess
 import json
-from datetime import datetime
 import logging
 import shutil
 from height_calculation import calculate_rendered_heights
-import numbers # Import the numbers module
 import time
 # from translations import SPANISH_TRANSLATIONS # No longer importing directly
 from bs4 import BeautifulSoup, NavigableString, Comment # Import BeautifulSoup AND Comment
@@ -92,98 +90,6 @@ def _save_translations() -> None:
 SPANISH_TRANSLATIONS: Dict[str, str] = _load_translations_from_excel()
 # --- End Translation Handling ---
 
-def is_valid_numeric_value(value: Any) -> bool:
-    """Check if a value is a number (int, float, or numeric string)."""
-    if value is None:
-        return False
-    if isinstance(value, numbers.Number): # Catches int, float
-        return True
-    if isinstance(value, str):
-        # Check if string represents a number (allowing for decimals)
-        # Remove leading/trailing whitespace before checking
-        return value.strip().replace('.', '', 1).isdigit()
-    return False # Not a number or numeric string
-
-def _process_record_parameters(record: Dict[str, Any], all_parameters_config: List[str]) -> Dict[str, Any]:
-    """Processes parameter-related data for a single record."""
-    
-    # Add a list to track which parameters to display
-    record["display_parameters"] = []
-    
-    locations = ["Outdoor", "FF", "Filtered"]
-
-    for parameter in all_parameters_config:
-        # Check if the parameter has AT LEAST ONE valid numeric value for any location
-        is_displayed = False
-        for location in locations:
-            value = record.get(f"{parameter}_{location}")
-            # Use the helper function to check for numeric or None
-            if is_valid_numeric_value(value) or value is None:
-                 is_displayed = True
-                 break # Found a displayable value, no need to check other locations
-
-        # Only include parameter in display list if it has valid data or is None
-        if is_displayed:
-            record["display_parameters"].append(parameter)
-
-        # Calculate overall standard only across available locations
-        standard_values = []
-        for location in locations:
-            standard_val = record.get(f'{parameter}_{location}_Standard')
-            available_flag = record.get(f'{parameter}_{location}_Available')
-            if available_flag is None or available_flag is True:
-                standard_values.append(standard_val)
-
-        if all(val in (1, None) for val in standard_values):
-            record[f'{parameter}_Standard'] = 1
-        else:
-            record[f'{parameter}_Standard'] = 0 # At least one location is out of standard (and not None)
-
-    # Calculate how many parameters meet the overall standard
-    in_range_count = 0
-    # Use count of parameters actually having data for this record
-    total_parameters_count = len(record["display_parameters"]) 
-    for parameter in record["display_parameters"]: # Iterate through parameters with data only
-        # Check if the overall standard for this parameter is 1 
-        # (standard calculation already handles None implicitly)
-        if record.get(f'{parameter}_Standard') == 1:
-             in_range_count += 1
-    
-    # Add count and total to the record for template rendering
-    record['in_range_count'] = in_range_count
-    record['total_parameters_count'] = total_parameters_count
-
-    # Identify parameters not tested or without valid data for this specific record
-    record['not_tested_parameters'] = []
-    tested_params_set = set(record["display_parameters"])
-
-    # Iterate the config list rather than a set difference: sets have no order, so
-    # the previous version produced a different ordering on every run, which made
-    # the same input generate byte-different PDFs.
-    missing_params = [p for p in all_parameters_config if p not in tested_params_set]
-    
-    for param in missing_params:
-        reason = "No data available for this parameter in the sample."
-        # Check original fields for explanatory text (if it's a string and not numeric)
-        outdoor_val = record.get(f'{param}_Outdoor')
-        ff_val = record.get(f'{param}_FF')
-        filtered_val = record.get(f'{param}_Filtered')
-        
-        # Prioritize explanatory text if available
-        if isinstance(outdoor_val, str) and not is_valid_numeric_value(outdoor_val):
-            reason = outdoor_val
-        elif isinstance(ff_val, str) and not is_valid_numeric_value(ff_val):
-            reason = ff_val
-        elif isinstance(filtered_val, str) and not is_valid_numeric_value(filtered_val):
-            reason = filtered_val
-
-        record['not_tested_parameters'].append({
-            'name': param,
-            'reason': reason
-        })
-        
-    return record # Return the modified record
-
 def gen_report(output_file_name: str, participant_id: str, final_pdf_filename: str, language_code: str, final_report_dir: str) -> None:
     reports_folder: str = final_report_dir
     
@@ -251,9 +157,9 @@ async def fetch_translations_async(texts_to_translate: List[str]) -> Dict[str, s
 
 # Rename function again based on user preference
 def create_report_pdf(record: Dict[str, Any], manifest: Dict[str, str]) -> None:
-    id: str = str(record["Participant_ID"])
+    id: str = record["id"]
     date: str = record['date'] # Original date in YYYY-MM-DD
-    language: str = record.get("Language", "English") # Default to English if missing
+    language: str = record.get("language", "English") # Default to English if missing
     language_code: str = 'es' if language.lower() == 'spanish' else 'en'
     final_report_dir: str = manifest['reports']
 
@@ -261,9 +167,6 @@ def create_report_pdf(record: Dict[str, Any], manifest: Dict[str, str]) -> None:
 
     # Set up Jinja2 environment to load templates from the template directory
     env = Environment(loader=FileSystemLoader(str(settings.TEMPLATE_DIR)))
-
-    # Add dynamic metadata for templates
-    record['latest_annual_report_year'] = datetime.now().year - 1
 
     # Define and create temporary directory for this report
     temp_dir = os.path.join(manifest['work'], id)
@@ -570,11 +473,6 @@ def main() -> None:
     file_path: str = manifest['records']
     os.makedirs(manifest['work'], exist_ok=True)
 
-    # Configuration is loaded once at module level (see CONFIG above)
-    config = CONFIG
-    water_utilities = config.get('waterUtilities', {})
-    parameters = config['parameters']['all']
-
     # Define and create the final output directory
     final_report_dir = manifest['reports']
     os.makedirs(final_report_dir, exist_ok=True)
@@ -588,17 +486,9 @@ def main() -> None:
         start_time = time.time()
         for i, record in enumerate(records):
             try:
-                # Preprocessing
-                record['date'] = datetime.strptime(str(record.get("Sample_date", "")), '%m/%d/%Y').strftime('%Y-%m-%d')
-                record = _process_record_parameters(record, parameters)
-                water_utility_key = record.get("Water_System")
-                if water_utility_key and water_utility_key in water_utilities:
-                    record["water_utility"] = water_utilities[water_utility_key]
-                else:
-                    record["water_utility"] = None 
-                    logging.warning(f"Water utility '{water_utility_key}' not found for {record.get('Participant_ID')}")
-                
-                # Call the renamed function, passing the final report directory
+                # Every field create_report_pdf() needs (id/date/language, display_parameters,
+                # water_utility, latest_annual_report_year, ...) is already in the record:
+                # analyze() finalizes it at analysis time, not render time.
                 create_report_pdf(record, manifest)
                 processed_records += 1
                 

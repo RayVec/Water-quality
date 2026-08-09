@@ -21,49 +21,18 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import settings  # noqa: E402
+import data_analysis  # noqa: E402
+from mock import metric_block  # noqa: E402
 
 BATCH = "test_scenarios"
 BASELINE_DIR = Path(__file__).resolve().parent / "baseline"
-
-
-def _metric_block(
-    value_outdoor: Optional[float],
-    value_ff: Optional[float],
-    value_filtered: Optional[float],
-    standard_outdoor: Optional[int],
-    standard_ff: Optional[int],
-    standard_filtered: Optional[int],
-    avg_outdoor: Optional[float],
-    avg_ff: Optional[float],
-    avg_filtered: Optional[float],
-    param_type: int,
-) -> Dict[str, Any]:
-    filtered_available = value_filtered is not None
-    overall = 1 if all(v in (1, None) for v in [standard_outdoor, standard_ff, standard_filtered]) else 0
-    return {
-        "type": param_type,
-        "Outdoor": value_outdoor,
-        "Outdoor_Standard": standard_outdoor,
-        "Outdoor_Average": avg_outdoor,
-        "Outdoor_Evaluation": None,
-        "FF": value_ff,
-        "FF_Standard": standard_ff,
-        "FF_Average": avg_ff,
-        "FF_Evaluation": None,
-        "Filtered_Available": filtered_available,
-        "Filtered": value_filtered,
-        "Filtered_Standard": standard_filtered if filtered_available else None,
-        "Filtered_Average": avg_filtered if filtered_available else None,
-        "Filtered_Evaluation": None,
-        "Overall": overall,
-    }
 
 
 _SUFFIXES = [
@@ -108,27 +77,27 @@ def _base_record(
 def _passing_metrics(filtered: bool) -> Dict[str, Dict[str, Any]]:
     f = (0.8, 0.02, 1.0, 0.05, 7.1, 0.05, 0.5, 0) if filtered else (None,) * 8
     return {
-        "Disinfectant": _metric_block(1.2, 1.0, f[0], 1, 1, 1 if filtered else None, 1.3, 1.1, 0.9, 1),
-        "Ammonia": _metric_block(0.08, 0.05, f[1], None, None, None, 0.07, 0.06, 0.03, 2),
-        "Nitrate": _metric_block(1.6, 1.8, f[2], 1, 1, 1 if filtered else None, 1.5, 1.7, 1.1, 1),
-        "Nitrite": _metric_block(0.2, 0.15, f[3], 1, 1, 1 if filtered else None, 0.18, 0.16, 0.06, 1),
-        "pH": _metric_block(7.2, 7.4, f[4], None, None, None, 7.1, 7.3, 7.0, 0),
-        "Turbidity": _metric_block(0.12, 0.09, f[5], 1, 1, 1 if filtered else None, 0.11, 0.1, 0.06, 1),
-        "Lead": _metric_block(1.2, 2.8, f[6], 1, 1, 1 if filtered else None, 1.5, 2.1, 0.6, 1),
-        "Bacteria": _metric_block(0, 0, f[7], 1, 1, 1 if filtered else None, 0, 0, 0, 3),
+        "Disinfectant": metric_block(1.2, 1.0, f[0], 1, 1, 1 if filtered else None, 1.3, 1.1, 0.9, 1),
+        "Ammonia": metric_block(0.08, 0.05, f[1], None, None, None, 0.07, 0.06, 0.03, 2),
+        "Nitrate": metric_block(1.6, 1.8, f[2], 1, 1, 1 if filtered else None, 1.5, 1.7, 1.1, 1),
+        "Nitrite": metric_block(0.2, 0.15, f[3], 1, 1, 1 if filtered else None, 0.18, 0.16, 0.06, 1),
+        "pH": metric_block(7.2, 7.4, f[4], None, None, None, 7.1, 7.3, 7.0, 0),
+        "Turbidity": metric_block(0.12, 0.09, f[5], 1, 1, 1 if filtered else None, 0.11, 0.1, 0.06, 1),
+        "Lead": metric_block(1.2, 2.8, f[6], 1, 1, 1 if filtered else None, 1.5, 2.1, 0.6, 1),
+        "Bacteria": metric_block(0, 0, f[7], 1, 1, 1 if filtered else None, 0, 0, 0, 3),
     }
 
 
 def _failing_metrics() -> Dict[str, Dict[str, Any]]:
     return {
-        "Disinfectant": _metric_block(0.05, 0.03, None, 0, 0, None, 1.3, 1.1, None, 1),
-        "Ammonia": _metric_block(1.0, 0.9, None, None, None, None, 0.07, 0.06, None, 2),
-        "Nitrate": _metric_block(20.0, 22.0, None, 0, 0, None, 1.5, 1.7, None, 1),
-        "Nitrite": _metric_block(2.0, 1.9, None, 0, 0, None, 0.18, 0.16, None, 1),
-        "pH": _metric_block(13.0, 12.8, None, None, None, None, 7.1, 7.3, None, 0),
-        "Turbidity": _metric_block(3.0, 2.9, None, 0, 0, None, 0.11, 0.1, None, 1),
-        "Lead": _metric_block(50.0, 55.0, None, 0, 0, None, 1.5, 2.1, None, 1),
-        "Bacteria": _metric_block(3, 2, None, 0, 0, None, 0, 0, None, 3),
+        "Disinfectant": metric_block(0.05, 0.03, None, 0, 0, None, 1.3, 1.1, None, 1),
+        "Ammonia": metric_block(1.0, 0.9, None, None, None, None, 0.07, 0.06, None, 2),
+        "Nitrate": metric_block(20.0, 22.0, None, 0, 0, None, 1.5, 1.7, None, 1),
+        "Nitrite": metric_block(2.0, 1.9, None, 0, 0, None, 0.18, 0.16, None, 1),
+        "pH": metric_block(13.0, 12.8, None, None, None, None, 7.1, 7.3, None, 0),
+        "Turbidity": metric_block(3.0, 2.9, None, 0, 0, None, 0.11, 0.1, None, 1),
+        "Lead": metric_block(50.0, 55.0, None, 0, 0, None, 1.5, 2.1, None, 1),
+        "Bacteria": metric_block(3, 2, None, 0, 0, None, 0, 0, None, 3),
     }
 
 
@@ -150,7 +119,7 @@ def build_scenarios(config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     record = _base_record("P9104T", "Spanish", "Chloramine", "City of Manor", config)
     record["Overall_Result"] = 0
     metrics = _passing_metrics(filtered=False)
-    metrics["Nitrate"] = _metric_block(12.0, 11.5, None, 0, 0, None, 1.5, 1.7, None, 1)
+    metrics["Nitrate"] = metric_block(12.0, 11.5, None, 0, 0, None, 1.5, 1.7, None, 1)
     scenarios["es_chloramine_nofiltered_mixed"] = _apply_metrics(record, metrics)
 
     record = _base_record("P9105T", "English", "Chlorine", "City of Killeen", config)
@@ -184,6 +153,15 @@ def run_scenarios() -> Dict[str, Tuple[Path, Path]]:
     """Write every scenario's record, run the real pipeline, return output paths."""
     config = settings.load_config()
     scenarios = build_scenarios(config)
+
+    # analyze() finalizes real records at analysis time now (Step 1 of the
+    # refactor); mock records have to go through the same finishing step,
+    # or they'd be missing display_parameters/water_utility/id/date/language
+    # and report_gen.py would break on them.
+    scenarios = {
+        name: data_analysis.finalize_record(record, config)
+        for name, record in scenarios.items()
+    }
 
     manifest_path = settings.write_manifest(BATCH)
     manifest = settings.resolve(BATCH)
