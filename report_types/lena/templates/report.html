@@ -135,6 +135,14 @@
             <div class="title"><a href="#page2">1. Overview</a></div>
             <div class="page" data-toc-page></div>
           </div>
+          <div class="heading2" data-toc-entry="lena-result">
+            <div class="title"><a href="#lena-result">LENA Result</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
+          <div class="heading2" data-toc-entry="important-note">
+            <div class="title"><a href="#important-note">Important Note</a></div>
+            <div class="page" data-toc-page></div>
+          </div>
           <div class="heading1" data-toc-entry="page3">
             <div class="title"><a href="#page3">2. Detailed Results</a></div>
             <div class="page" data-toc-page></div>
@@ -212,7 +220,7 @@
           <h1 class="chapter-heading">Overview</h1>
         </div>
 
-        <div class="section-heading">
+        <div id="lena-result" class="section-heading">
           <img src="{{ assets_url }}/icons/report-data.svg" />
           <h2>LENA Results</h2>
         </div>
@@ -241,7 +249,7 @@
           'Percentile Key: ' ~ productivity_percentile_label,
         ]) }}
 
-        <div class="section-heading">
+        <div id="important-note" class="section-heading">
           <img src="{{ assets_url }}/icons/exclamation.svg" />
           <h2>Important Note</h2>
         </div>
@@ -452,9 +460,9 @@
           <p style="margin-bottom: 12px">WCWH uses the database to compare your child's recording to recordings in the database to identify your child's percentiles.</p>
           <div class="box-notice" style="margin-bottom: 12px">
             <div class="child-info-row"><img src="{{ assets_url }}/icons/clock.svg" />Recording Hours: 32,000+ hours</div>
-            <div class="child-info-row"><img src="{{ assets_url }}/icons/child-care.svg" />Participants: 329 children</div>
+            <div class="child-info-row"><img src="{{ assets_url }}/icons/participants.svg" />Participants: 329 children</div>
             <div class="child-info-row"><img src="{{ assets_url }}/icons/child-care.svg" />Age Range: 2 to 48 months</div>
-            <div class="child-info-row" style="margin-bottom: 0"><img src="{{ assets_url }}/icons/gift.svg" />Collection Context: Natural home environments</div>
+            <div class="child-info-row" style="margin-bottom: 0"><img src="{{ assets_url }}/icons/home.svg" />Collection Context: Natural home environments</div>
           </div>
           <h3>Whose Data is Included</h3>
           <div class="box-info" style="margin-bottom: 12px">
@@ -666,7 +674,7 @@
       </div>
       <div class="content" data-page-content>
         <div id="resources-education" class="category-heading">
-          <img src="{{ assets_url }}/icons/book.svg" />
+          <img src="{{ assets_url }}/icons/category.svg" />
           <h2>{{ resource_directory[1].category }}</h2>
         </div>
         {{ org_card(resource_directory[1].organizations[0]) }}
@@ -695,7 +703,7 @@
       </div>
       <div class="content" data-page-content>
         <div id="resources-healthcare" class="category-heading">
-          <img src="{{ assets_url }}/icons/heart.svg" />
+          <img src="{{ assets_url }}/icons/category.svg" />
           <h2>{{ resource_directory[2].category }}</h2>
         </div>
         {{ org_card(resource_directory[2].organizations[0]) }}
