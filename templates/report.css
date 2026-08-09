@@ -30,109 +30,11 @@
   }
 } */
 
-@page toc {
-  height: 1730px;
-}
-#toc {
-  page: toc;
-}
-@page page2 {
-  height: 2400px;
-}
-#page2 {
-  page: page2;
-}
-@page page3 {
-  height: 2000px;
-}
-#page3 {
-  page: page3;
-}
-@page page4 {
-  height: 2300px;
-}
-#page4 {
-  page: page4;
-}
-@page page5 {
-  height: 3000px;
-}
-#page5 {
-  page: page5;
-}
-@page page6 {
-  height: 2700px;
-}
-#page6 {
-  page: page6;
-}
-
-@page page7 {
-  height: 2400px;
-}
-#page7 {
-  page: page7;
-}
-@page page8 {
-  height: 2500px;
-}
-#page8 {
-  page: page8;
-}
-@page page9 {
-  height: 1950px;
-}
-#page9 {
-  page: page9;
-}
-@page page10 {
-  height: 1400px;
-}
-#page10 {
-  page: page10;
-}
-@page page11 {
-  height: 1500px;
-}
-#page11 {
-  page: page11;
-}
-@page page12 {
-  height: 1500px;
-}
-#page12 {
-  page: page12;
-}
-@page page13 {
-  height: 1500px;
-}
-#page13 {
-  page: page13;
-}
-@page page14 {
-  height: 1500px;
-}
-#page14 {
-  page: page14;
-}
-@page page15 {
-  height: 1500px;
-}
-#page15 {
-  page: page15;
-}
-@page page16 {
-  height: 1500px;
-}
-#page16 {
-  page: page16;
-}
-@page page17 {
-  height: 1500px;
-}
-#page17 {
-  page: page17;
-}
+/* Per-page @page height rules and #id { page: ... } assignments used to be
+   hand-written here for every data-page element (toc, page2..page17). The
+   engine now generates both from the rendered HTML's data-page order and
+   measured heights (report_gen.py's generate_custom_css()), so none of that
+   bookkeeping lives in source CSS anymore. */
 
 #cover {
   position: relative;

@@ -322,66 +322,53 @@ def generate_custom_css(html_file_path: str, participant_id: str) -> None:
         "{{ASSETS}}", os.path.relpath(settings.ASSETS_DIR, temp_folder)
     )
     
-    # Determine the pages to measure dynamically based on the rendered HTML
+    # Determine the pages to measure from the rendered HTML's data-page
+    # elements, in document order. validate() already guaranteed at least one
+    # exists and that every one has an id (implicitly, via the data-page-content
+    # cardinality check finding the element at all) — this doesn't re-check that,
+    # it just skips anything unexpectedly id-less rather than crashing.
+    with open(html_file_path, 'r', encoding='utf-8') as html_file:
+        soup = BeautifulSoup(html_file, 'html.parser')
+
     pages_to_measure = []
-    try:
-        with open(html_file_path, 'r', encoding='utf-8') as html_file:
-            soup = BeautifulSoup(html_file, 'html.parser')
+    for element in soup.find_all(attrs={"data-page": True}):
+        element_id = element.get('id')
+        if element_id:
+            pages_to_measure.append(element_id)
+        else:
+            logging.warning(f"Skipping a data-page element with no id in {html_file_path}")
 
-        seen_ids = set()
-        for element in soup.find_all(id=True):
-            element_id = element.get('id')
-            if element_id and (element_id == 'toc' or element_id.startswith('page')):
-                if element_id not in seen_ids:
-                    pages_to_measure.append(element_id)
-                    seen_ids.add(element_id)
+    if not pages_to_measure:
+        logging.error(f"No data-page elements with an id were found in {html_file_path}")
 
-        if not pages_to_measure:
-            raise ValueError("No page sections with ids 'toc' or starting with 'page' were found.")
-
-    except Exception as exc:
-        logging.error(f"Failed to detect pages dynamically for {html_file_path}: {exc}")
-        pages_to_measure = ["toc", "page2", "page3", "page4", "page5", "page6", "page7", "page8", "page9", "page10"]
-    
-    # Calculate heights for all pages at once
+    # Calculate heights for all pages at once, then generate this record's
+    # @page height rule and #id { page: ... } assignment for each — the engine
+    # writes both from scratch instead of rewriting hand-written ones.
     try:
         # Use the new, optimized function that calculates all heights in a single browser session
         page_heights = calculate_rendered_heights(html_file_path, css_content, pages_to_measure)
-        
-        for page_id, height in page_heights.items():
+
+        generated_rules = []
+        for page_id in pages_to_measure:
+            height = page_heights.get(page_id)
             if height is None:
                 logging.error(f"Failed to calculate height for {page_id}")
                 continue
-                
+
             # Add 2px padding
             height = height - 30
             logging.info(f"Calculated height for {page_id}: {height}px")
-            
-            # Replace height in @page rule
-            css_content = re.sub(
-                r'(@page\s+' + page_id + r'\s*\{\s*height\s*:\s*)[^;]+;', 
-                r'\g<1>' + str(height) + 'px;', 
-                css_content
-            )
-            
-            # If #pageX has a height property, update it
-            if re.search(r'#' + page_id + r'\s*\{[^\}]*height\s*:', css_content):
-                css_content = re.sub(
-                    r'(#' + page_id + r'\s*\{[^\}]*height\s*:\s*)[^;]+;', 
-                    r'\g<1>' + str(height) + 'px;', 
-                    css_content
-                )
-            # If #pageX exists but doesn't have a height property, add it
-            elif re.search(r'#' + page_id + r'\s*\{', css_content):
-                css_content = re.sub(
-                    r'(#' + page_id + r'\s*\{)([^\}]*)\}', 
-                    r'\g<1>\g<2>  height: ' + str(height) + 'px;\n}', 
-                    css_content
-                )
-            # If #pageX doesn't exist, create it
-            else:
-                css_content += f"\n#{page_id} {{\n  height: {height}px;\n  page: {page_id};\n}}"
-            
+
+            # Both the print page fragment (@page) and the element itself need
+            # the height: the article's own box has to match the page fragment
+            # it's assigned to, or its flex layout (space-between header/content/
+            # footer) renders against its natural height instead and the footer
+            # drifts past the page boundary.
+            generated_rules.append(f"@page {page_id} {{\n  height: {height}px;\n}}")
+            generated_rules.append(f"#{page_id} {{\n  height: {height}px;\n  page: {page_id};\n}}")
+
+        if generated_rules:
+            css_content += "\n\n" + "\n".join(generated_rules) + "\n"
     except Exception as e:
         logging.error(f"Error calculating heights: {str(e)}")
     
