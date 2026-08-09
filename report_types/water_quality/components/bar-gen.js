@@ -4,21 +4,20 @@ const path = require("path");
 const XLSX = require("xlsx"); // Import the xlsx library
 
 // --- Shared configuration ---
+// This type's own directory (one level up from components/) — config.json
+// and translations.xlsx both live there, not under __dirname itself.
+const typeDir = path.join(__dirname, "..");
+
 // Loaded first so everything below can read its constants from config.json
 // instead of hardcoding them here as well as in the Python scripts.
-const configPath = path.join(__dirname, "config.json");
+const configPath = path.join(typeDir, "config.json");
 const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 const parameterRanges = config.parameterRanges;
 const parameters = config.parameters.all;
 const barMaxValues = config.barDefaults.maxValue;
 
 // --- Translation Setup ---
-const TRANSLATIONS_FILE = path.join(
-  __dirname,
-  "data",
-  "reference",
-  config.files.translations
-);
+const TRANSLATIONS_FILE = path.join(typeDir, config.files.translations);
 const ENGLISH_COL = config.files.translationColumns.english;
 const SPANISH_COL = config.files.translationColumns.spanish;
 let translations = {}; // Global object to hold loaded translations
@@ -154,7 +153,7 @@ function loadManifest() {
   if (!manifestPath) {
     console.error("\n❌ MANIFEST is not set.");
     console.error("   Run the pipeline through run_pipeline.py, or point it at a batch:");
-    console.error("       MANIFEST='build/<batch>/manifest.json' node bar-gen.js\n");
+    console.error("       MANIFEST='build/water_quality/<batch>/manifest.json' node components/bar-gen.js\n");
     process.exit(1);
   }
   if (!fs.existsSync(manifestPath)) {

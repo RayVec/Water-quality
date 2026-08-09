@@ -3,6 +3,10 @@
 把当前的水质专用管线，改造成一个「报告引擎 + 若干报告类型」的结构，使新增一种数据类型的报告
 只需要写它自己的数据处理、可视化和模板，不必碰引擎。
 
+> **现状：第 0~4 步已在 `refactor/multi-type-engine` 分支上实施完成**，每步单独提交、逐像素验证
+> 通过（含真实批次核对）。第 5 步（接入第二种类型）仍按原计划等设计稿到手后再做。实施过程中发现
+> 并修正的具体问题记在第 6 节对应步骤和第 3 节的命名说明里，不是本文档最初设计的一部分。
+
 ## 0. 前提：四个已确认的不变量
 
 在设计契约之前先钉死这次讨论确认下来的东西，因为它们直接决定引擎层的边界该划多宽：
@@ -114,19 +118,30 @@ data/
                                   已确认同一批 WCWH 研究参与者，不同报告类型共用同一份身份映射，留在这里不用动
     sources/<type>/<batch>.*      各类型自己的输入批次，扩展名和内部格式完全由该类型的 analyze() 解释，引擎不假设是 Excel
 
-types/water_quality/
-    config.json                  今天的 config.json 原样搬入
+report_types/water_quality/
+    config.json                  今天的 config.json 原样搬入，新增一个 output 小节（文件名规则，见 5.3）
     analyze.py                   今天的 data_analysis.py，出口新增 id/date/language 三个字段
     components/                  今天的 bar-gen.js 原样搬入，外面包一层引擎能调用的入口（可以就是"跑这个 node 脚本"）
     mock.py                      预览用假数据（今天 run_pipeline.py 里的 build_template_record）
     translations.xlsx            该类型专有词汇
-    assets/                      水质专属图标图片（今天 assets/icons 里几乎全部）
+    assets/                      水质专属图标图片和字体（今天 assets/ 下的全部内容）
     templates/report.html        report.css   照设计稿自由编写，只需要标出语义属性
 
-assets/                          只放证明跨类型共用的东西：字体等
 build/<type>/<batch>/            生成物
 reports/<type>/<batch>/          交付 PDF
 ```
+
+命名两点说明（实施 Step 4 时发现，不是最初设计）：
+
+- **目录不叫 `types/`，叫 `report_types/`。** `types` 是 Python 标准库自己的模块名——用它做包名会导致
+  `import types` 永远解析成标准库那个（Python 启动时就把它放进了 `sys.modules` 缓存），本地包里的
+  `report_types.water_quality.*` 因此永远无法通过 `types.water_quality` 这条路径访问到。这条不是本方案
+  的核心决定，纯粹是给一个通用词让了路。
+- **没有单独的顶层 `assets/`。** 原计划里字体等"证明跨类型共用"的东西放顶层 `assets/`，图标图片放类型自己
+  的 `assets/`。实施时发现，在只有一个类型的情况下没有任何证据支持"字体也跨类型共用"这个假设——这本身
+  就是一处不该现在就做的预留。现在字体和图标图片一起放在 `report_types/water_quality/assets/` 里；等第
+  二种类型真的出现，如果它也要用同一套字体，再决定要不要拆出一个共用位置（同第 9 节"不提前建空目录"的
+  原则）。
 
 依赖方向单向向下，无环：
 
@@ -135,7 +150,7 @@ reports/<type>/<batch>/          交付 PDF
                          │
         ┌────────────────┼────────────────┐
         ▼                ▼                ▼
-  types/*/analyze   types/*/components  engine/render
+  report_types/*/analyze   report_types/*/components  engine/render
         │                │                │  └→ translate / pagination / layout / validate
         └────────────────┴────────────────┘
                          ▼
@@ -199,7 +214,7 @@ MANIFEST='build/water_quality/B8 Data/manifest.json' .venv/bin/python report_gen
 
 ### 场景 C —— 修改一个已有报告类型
 
-不用碰 `engine/`，只改 `types/<type>/` 里面的东西：
+不用碰 `engine/`，只改 `report_types/<type>/` 里面的东西：
 
 | 想改什么 | 改哪个文件 | 怎么验证 |
 |---|---|---|
@@ -216,7 +231,7 @@ MANIFEST='build/water_quality/B8 Data/manifest.json' .venv/bin/python report_gen
 
 等设计稿到手、真的要做第二种类型时，按这个顺序走：
 
-1. `mkdir types/<type>`，写这种类型自己的 `config.json`。
+1. `mkdir report_types/<type>`，写这种类型自己的 `config.json`。
 2. 照设计稿写 `templates/report.html` + `report.css`，宽度用第 0 节统一的手机宽度，高度不用管
    （引擎按内容自动算）；此外只需要在恰当位置加上 5 个 `data-*` 属性（见第 5 节契约）。
 3. 写 `mock.py`：手造一条假数据，跑场景 B 的预览流程，把设计调对——这一步完全不需要真实数据，
@@ -347,7 +362,7 @@ DOM 遍历、判空、删空页、重新编号、回填目录——只是它认�
 
 *验收：PDF 逐像素不变；CSS 变短；模板里不再有手写页码。*
 
-**第 4 步 —— 物理拆分 `engine/` 与 `types/water_quality/`**
+**第 4 步 —— 物理拆分 `engine/` 与 `report_types/water_quality/`**
 
 纯搬文件 + 改 import，不改逻辑。同时把 `settings.py` 的 `available_batches()` / `resolve()`
 松开 Excel 假设，给路径和 manifest 加 type 维度。
@@ -356,7 +371,7 @@ DOM 遍历、判空、删空页、重新编号、回填目录——只是它认�
 
 **第 5 步 —— 接入第二种类型（等设计稿到手后再做）**
 
-新建 `types/<type>/`，照设计稿写模板，实现 `analyze` / `components` / `mock`。这一步引擎大概率
+新建 `report_types/<type>/`，照设计稿写模板，实现 `analyze` / `components` / `mock`。这一步引擎大概率
 还要再调整——这是预期内的，而且现在只有一个真实消费者，调整代价很低。
 
 ## 7. 风险

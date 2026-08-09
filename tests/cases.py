@@ -3,7 +3,7 @@
 Every scenario is a fully-formed record — same shape as run_pipeline.py's
 template-preview mock — covering one combination of language, filtered
 sample, disinfectant type and pass/fail axes. Feeding them through the real
-pipeline (bar-gen.js + report_gen.py) and diffing the result against
+pipeline (components/bar-gen.js + engine.render) and diffing the result against
 tests/baseline/ is how every refactor step proves it hasn't changed the
 deliverable. Deliberately synthetic: no real participant data ever goes
 into tests/baseline/, which is committed to the repo.
@@ -25,12 +25,12 @@ from typing import Any, Dict, Tuple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import settings  # noqa: E402
-import data_analysis  # noqa: E402
-from mock import metric_block  # noqa: E402
+from engine import paths  # noqa: E402
+from report_types.water_quality import analyze  # noqa: E402
+from report_types.water_quality.mock import metric_block  # noqa: E402
 
+TYPE_NAME = "water_quality"
 BATCH = "test_scenarios"
 BASELINE_DIR = Path(__file__).resolve().parent / "baseline"
 
@@ -151,29 +151,30 @@ def _scenario_output_paths(record: Dict[str, Any], manifest: Dict[str, str]) -> 
 
 def run_scenarios() -> Dict[str, Tuple[Path, Path]]:
     """Write every scenario's record, run the real pipeline, return output paths."""
-    config = settings.load_config()
+    config = paths.load_config(TYPE_NAME)
     scenarios = build_scenarios(config)
 
     # analyze() finalizes real records at analysis time now (Step 1 of the
     # refactor); mock records have to go through the same finishing step,
     # or they'd be missing display_parameters/water_utility/id/date/language
-    # and report_gen.py would break on them.
+    # and engine.render would break on them.
     scenarios = {
-        name: data_analysis.finalize_record(record, config)
+        name: analyze.finalize_record(record, config)
         for name, record in scenarios.items()
     }
 
-    manifest_path = settings.write_manifest(BATCH)
-    manifest = settings.resolve(BATCH)
+    manifest_path = paths.write_manifest(TYPE_NAME, BATCH)
+    manifest = paths.resolve(TYPE_NAME, BATCH)
     os.makedirs(os.path.dirname(manifest["records"]), exist_ok=True)
     with open(manifest["records"], "w", encoding="utf-8") as f:
         json.dump(list(scenarios.values()), f, indent=2, ensure_ascii=False)
 
     env = os.environ.copy()
-    env[settings.ENV_VAR] = str(manifest_path)
+    env[paths.ENV_VAR] = str(manifest_path)
 
-    subprocess.run(["node", "bar-gen.js"], cwd=PROJECT_ROOT, env=env, check=True)
-    subprocess.run([sys.executable, "report_gen.py"], cwd=PROJECT_ROOT, env=env, check=True)
+    components_entry = os.path.join(manifest["type_dir"], "components", "bar-gen.js")
+    subprocess.run(["node", components_entry], cwd=PROJECT_ROOT, env=env, check=True)
+    subprocess.run([sys.executable, "-m", "engine.render"], cwd=PROJECT_ROOT, env=env, check=True)
 
     return {name: _scenario_output_paths(record, manifest) for name, record in scenarios.items()}
 

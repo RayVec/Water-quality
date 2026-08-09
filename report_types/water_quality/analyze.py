@@ -6,12 +6,14 @@ import os
 import logging
 import numbers
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List
 
-import settings
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from engine import paths
 
 
-# --- Record finishing (moved in from report_gen.py, Step 1 of the multi-type
+# --- Record finishing (moved in from the render stage during the multi-type
 # refactor: the engine should not carry water-quality-specific record logic).
 # analyze() calls this on every record it produces, and any mock-data builder
 # must call it too, so records.json is always "render-ready" regardless of
@@ -114,7 +116,7 @@ def _process_record_parameters(record: Dict[str, Any], all_parameters_config: Li
 def finalize_record(record: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
     """Turn a raw combined record into a render-ready one.
 
-    Everything here used to be computed by report_gen.py at render time.
+    Everything here used to be computed by the render stage at render time.
     Doing it once, here, means records.json is a self-contained artifact
     that doesn't depend on the moment it happens to be rendered, and any
     mock-data builder that calls this gets the exact same record shape a
@@ -206,7 +208,7 @@ def analyze(source_path: str, config: Dict[str, Any]) -> List[Dict[str, Any]]:
         parameters = config['parameters']['measured']
         # Internal parameter name -> column name in the source workbook
         parameter_column_map = config['columnMap']
-        id_map_file = str(settings.REFERENCE_DIR / config['files']['idMap'])
+        id_map_file = str(paths.REFERENCE_DIR / config['files']['idMap'])
     except KeyError as e:
         print(f"❌ Error: Missing required key '{e}' in 'config.json'.")
         sys.exit(1)
@@ -607,10 +609,10 @@ def analyze(source_path: str, config: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def main() -> None:
     # Every path for this run comes from the manifest named by $MANIFEST
-    manifest = settings.load_manifest()
+    manifest = paths.load_manifest()
 
     try:
-        config = settings.load_config()
+        config = paths.load_config(manifest['type'])
     except FileNotFoundError:
         print("❌ Error: Configuration file 'config.json' not found.")
         sys.exit(1)

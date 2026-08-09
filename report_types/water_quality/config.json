@@ -120,6 +120,14 @@
       "spanish": "Spanish"
     }
   },
+  "output": {
+    "filename": "{prefix}.{id}.{date}.pdf",
+    "prefix": {
+      "English": "WATER",
+      "Spanish": "AGUA"
+    },
+    "dateFormat": "%Y.%m.%d"
+  },
   "waterUtilities": {
     "Austin Water": {
       "name": "Austin Water",

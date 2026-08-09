@@ -2,7 +2,7 @@
 
 Used by run_pipeline.py's template-preview mode, and reused as-is by the
 test harness (tests/cases.py) for its own scenario variations. Every mock
-record is built in the same raw shape data_analysis.py's analyze() produces
+record is built in the same raw shape analyze.py's analyze() produces
 internally, then passed through the same finalize_record() so it is
 render-ready exactly the way a real batch's records are.
 """
@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from data_analysis import finalize_record
+from .analyze import finalize_record
 
 
 def metric_block(
